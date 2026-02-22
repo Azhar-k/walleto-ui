@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../providers/core_providers.dart';
 import '../providers/summary_providers.dart';
+import '../providers/additional_providers.dart';
 import '../models/models.dart';
 
 class TransactionFormScreen extends ConsumerStatefulWidget {
@@ -31,6 +32,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
 
   bool _excludeFromSummary = false;
   bool _isLoading = false;
+  RecurringPayment? _linkedRecurringPayment;
 
   @override
   void initState() {
@@ -53,6 +55,53 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
       );
       _excludeFromSummary =
           widget.existingTransaction!.excludeFromSummary ?? false;
+    }
+  }
+
+  String _currencySymbol(String currency) {
+    const symbols = {'INR': '₹', 'USD': '\$', 'EUR': '€', 'GBP': '£'};
+    return symbols[currency] ?? currency;
+  }
+
+  Future<void> _confirmDelete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Transaction'),
+        content: const Text(
+          'Are you sure you want to delete this transaction? This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      setState(() => _isLoading = true);
+      try {
+        await ref
+            .read(transactionServiceProvider)
+            .deleteTransaction(widget.existingTransaction!.id!);
+        ref.invalidate(transactionSearchProvider);
+        ref.invalidate(netBalanceProvider);
+        if (mounted) context.pop();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
+        }
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -84,6 +133,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
         accountName: _account!.name,
         counterpartyName: _counterpartyController.text.trim(),
         excludeFromSummary: _excludeFromSummary,
+        recurringPaymentId: _linkedRecurringPayment?.id,
       );
 
       try {
@@ -118,19 +168,33 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
   Widget build(BuildContext context) {
     final accountsAsync = ref.watch(accountsProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
+    final recurringPaymentsAsync = ref.watch(recurringPaymentsProvider);
+    final isEditing = widget.existingTransaction != null;
+
+    // Currency symbol from the currently selected account
+    final currency = _account?.currency ?? 'INR';
+    final currencySymbol = _currencySymbol(currency);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.existingTransaction == null
-              ? 'Add Transaction'
-              : 'Edit Transaction',
-        ),
+        title: Text(isEditing ? 'Edit Transaction' : 'Add Transaction'),
+        actions: [
+          if (isEditing)
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              tooltip: 'Delete',
+              color: Colors.red.shade300,
+              onPressed: _isLoading ? null : _confirmDelete,
+            ),
+        ],
       ),
       body: accountsAsync.when(
         data: (accounts) {
           return categoriesAsync.when(
             data: (categories) {
+              final recurringPayments =
+                  recurringPaymentsAsync.valueOrNull ?? [];
+
               // Preselect for editing
               if (widget.existingTransaction != null &&
                   _account == null &&
@@ -143,6 +207,13 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                   (c) => c.id == widget.existingTransaction!.categoryId,
                   orElse: () => categories.first,
                 );
+                // Preselect linked recurring payment
+                final rpId = widget.existingTransaction!.recurringPaymentId;
+                if (rpId != null && _linkedRecurringPayment == null) {
+                  _linkedRecurringPayment = recurringPayments
+                      .where((r) => r.id == rpId)
+                      .firstOrNull;
+                }
               } else if (_account == null && accounts.isNotEmpty) {
                 _account = accounts.firstWhere(
                   (a) => a.isDefault == true,
@@ -195,15 +266,17 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _amountController,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Amount *',
-                          prefixIcon: Icon(Icons.currency_rupee),
+                          prefixIcon: const Icon(Icons.attach_money),
+                          prefixText: '$currencySymbol ',
                         ),
                         keyboardType: TextInputType.number,
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Required';
-                          if (double.tryParse(v) == null)
+                          if (double.tryParse(v) == null) {
                             return 'Must be a valid number';
+                          }
                           return null;
                         },
                       ),
@@ -238,8 +311,9 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                                   firstDate: DateTime(2000),
                                   lastDate: DateTime(2100),
                                 );
-                                if (picked != null)
+                                if (picked != null) {
                                   setState(() => _transactionDate = picked);
+                                }
                               },
                             ),
                           ),
@@ -258,8 +332,9 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                                   context: context,
                                   initialTime: _transactionTime,
                                 );
-                                if (picked != null)
+                                if (picked != null) {
                                   setState(() => _transactionTime = picked);
+                                }
                               },
                             ),
                           ),
@@ -308,6 +383,31 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                           labelText: 'Counterparty (optional)',
                           prefixIcon: Icon(Icons.person),
                         ),
+                      ),
+                      const SizedBox(height: 16),
+                      // ── Recurring Payment linkage ─────────────────────────
+                      DropdownButtonFormField<RecurringPayment?>(
+                        initialValue: _linkedRecurringPayment,
+                        decoration: const InputDecoration(
+                          labelText: 'Linked Recurring Payment (optional)',
+                          prefixIcon: Icon(Icons.repeat),
+                        ),
+                        items: [
+                          const DropdownMenuItem(
+                            value: null,
+                            child: Text('None'),
+                          ),
+                          ...recurringPayments.map(
+                            (r) => DropdownMenuItem(
+                              value: r,
+                              child: Text(
+                                '${r.name}  •  ₹${r.amount.toStringAsFixed(0)}',
+                              ),
+                            ),
+                          ),
+                        ],
+                        onChanged: (val) =>
+                            setState(() => _linkedRecurringPayment = val),
                       ),
                       const SizedBox(height: 16),
                       SwitchListTile(
