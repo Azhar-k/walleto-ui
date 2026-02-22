@@ -1,0 +1,2431 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Walleto Core API",
+        "description": "Backend API for Walleto Personal Finance Application",
+        "version": "1.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8080",
+            "description": "Generated server url"
+        }
+    ],
+    "security": [
+        {
+            "bearerAuth": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "Onboarding",
+            "description": "API for onboarding new tenants"
+        },
+        {
+            "name": "Regex Patterns",
+            "description": "API for managing regex patterns used to parse bank SMS"
+        },
+        {
+            "name": "Recurring Payments",
+            "description": "API for managing recurring payments and subscriptions"
+        },
+        {
+            "name": "Summary Management",
+            "description": "Endpoints for retrieving financial summaries and category breakdown"
+        },
+        {
+            "name": "Accounts",
+            "description": "API for managing user accounts and wallets"
+        },
+        {
+            "name": "Categories",
+            "description": "API for managing income and expense categories"
+        },
+        {
+            "name": "SMS Processing",
+            "description": "API for processing bank SMS messages into transactions"
+        },
+        {
+            "name": "Audit Logs",
+            "description": "API for retrieving audit trail of application activities"
+        },
+        {
+            "name": "Transfer Management",
+            "description": "Endpoints for handling transfers between accounts"
+        },
+        {
+            "name": "Balance Management",
+            "description": "Endpoints for retrieving overall and account-specific balances"
+        },
+        {
+            "name": "Transactions",
+            "description": "API for managing financial transactions"
+        }
+    ],
+    "paths": {
+        "/api/transactions/{id}": {
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Get transaction by ID",
+                "description": "Retrieves a transaction by its ID.",
+                "operationId": "findById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the transaction",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseTransactionDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Update transaction",
+                "description": "Updates an existing transaction.",
+                "operationId": "update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the transaction",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TransactionDTO"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseTransactionDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Delete transaction",
+                "description": "Deletes a transaction by its ID.",
+                "operationId": "delete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the transaction",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/regex/{id}": {
+            "get": {
+                "tags": [
+                    "Regex Patterns"
+                ],
+                "summary": "Get pattern by ID",
+                "description": "Retrieves a specific regex pattern by its ID",
+                "operationId": "getPatternById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RegexPatternDTO"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Regex Patterns"
+                ],
+                "summary": "Update pattern",
+                "description": "Updates an existing regex pattern",
+                "operationId": "updatePattern",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegexPatternDTO"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RegexPatternDTO"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Regex Patterns"
+                ],
+                "summary": "Delete pattern",
+                "description": "Deletes a regex pattern by its ID",
+                "operationId": "deletePattern",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/recurring-payments/{id}": {
+            "get": {
+                "tags": [
+                    "Recurring Payments"
+                ],
+                "summary": "Get recurring payment by ID",
+                "description": "Retrieves a specific recurring payment by its ID.",
+                "operationId": "findById_1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the recurring payment",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseRecurringPaymentDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Recurring Payments"
+                ],
+                "summary": "Update recurring payment",
+                "description": "Updates an existing recurring payment.",
+                "operationId": "update_1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the recurring payment",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RecurringPaymentDTO"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseRecurringPaymentDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Recurring Payments"
+                ],
+                "summary": "Delete recurring payment",
+                "description": "Deletes a recurring payment by its ID.",
+                "operationId": "delete_1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the recurring payment",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/recurring-payments/{id}/complete": {
+            "put": {
+                "tags": [
+                    "Recurring Payments"
+                ],
+                "summary": "Mark as completed",
+                "description": "Marks a recurring payment as completed for the current period.",
+                "operationId": "complete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the recurring payment",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/recurring-payments/toggle-all": {
+            "put": {
+                "tags": [
+                    "Recurring Payments"
+                ],
+                "summary": "Toggle all payments",
+                "description": "Marks all recurring payments as completed or not completed.",
+                "operationId": "toggleAll",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ToggleRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/categories/{id}": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Get category by ID",
+                "description": "Retrieves a specific category by its ID.",
+                "operationId": "findById_2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the category to retrieve",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseCategoryDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Update category",
+                "description": "Updates an existing category.",
+                "operationId": "update_2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the category to update",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CategoryDTO"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseCategoryDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Delete category",
+                "description": "Deletes a category by its ID.",
+                "operationId": "delete_2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the category to delete",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/accounts/{id}": {
+            "get": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Get account by ID",
+                "description": "Retrieves a specific account by its ID.",
+                "operationId": "findById_3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the account to retrieve",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseAccountDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Update account",
+                "description": "Updates an existing account.",
+                "operationId": "update_3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the account to update",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AccountDTO"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseAccountDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Delete account",
+                "description": "Deletes an account by its ID.",
+                "operationId": "delete_3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the account to delete",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/accounts/{id}/default": {
+            "put": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Set default account",
+                "description": "Sets the specified account as the default account.",
+                "operationId": "setDefault",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the account to set as default",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/transfers": {
+            "post": {
+                "tags": [
+                    "Transfer Management"
+                ],
+                "summary": "Transfer Funds",
+                "description": "Initiates a transfer between two accounts owned by the current user",
+                "operationId": "transfer",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TransferRequestDTO"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Transfer completed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found - Account or category not found"
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input or same source/destination"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/transactions": {
+            "post": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Create transaction",
+                "description": "Creates a new transaction.",
+                "operationId": "create",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TransactionDTO"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseTransactionDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/transactions/search": {
+            "post": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Search transactions",
+                "description": "Searches for transactions based on various criteria.",
+                "operationId": "search",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TransactionSearchRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseListTransactionDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/sms/process": {
+            "post": {
+                "tags": [
+                    "SMS Processing"
+                ],
+                "summary": "Process a single SMS",
+                "description": "Parses a bank SMS and creates a transaction if a matching pattern is found.",
+                "operationId": "processSms",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SmsDTO"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseTransactionDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/sms/process/bulk": {
+            "post": {
+                "tags": [
+                    "SMS Processing"
+                ],
+                "summary": "Process SMS messages in bulk",
+                "description": "Parses a batch of bank SMS messages and returns processing statistics.",
+                "operationId": "processBulkSms",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BulkSmsDTO"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseSmsProcessingResultDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/regex": {
+            "get": {
+                "tags": [
+                    "Regex Patterns"
+                ],
+                "summary": "Get all patterns",
+                "description": "Retrieves all regex patterns for the current user",
+                "operationId": "getAllPatterns",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/RegexPatternDTO"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Regex Patterns"
+                ],
+                "summary": "Create pattern",
+                "description": "Creates a new regex pattern for SMS parsing",
+                "operationId": "createPattern",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegexPatternDTO"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RegexPatternDTO"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/recurring-payments": {
+            "get": {
+                "tags": [
+                    "Recurring Payments"
+                ],
+                "summary": "Get all recurring payments",
+                "description": "Retrieves all recurring payments for the authenticated user.",
+                "operationId": "findAll",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseListRecurringPaymentDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Recurring Payments"
+                ],
+                "summary": "Create recurring payment",
+                "description": "Creates a new recurring payment.",
+                "operationId": "create_1",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RecurringPaymentDTO"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseRecurringPaymentDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/onboarding": {
+            "post": {
+                "tags": [
+                    "Onboarding"
+                ],
+                "summary": "Onboard the current tenant",
+                "description": "Creates default account, categories and regex patterns if they do not exist for the current tenant.",
+                "operationId": "onboardTenant",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/categories": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Get all categories",
+                "description": "Retrieves all categories for the authenticated user.",
+                "operationId": "findAll_1",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseListCategoryDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Create a new category",
+                "description": "Creates a new category for the authenticated user.",
+                "operationId": "create_2",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CategoryDTO"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseCategoryDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/accounts": {
+            "get": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Get all accounts",
+                "description": "Retrieves all accounts for the authenticated user.",
+                "operationId": "findAll_2",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseListAccountDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Create a new account",
+                "description": "Creates a new account for the authenticated user.",
+                "operationId": "create_3",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AccountDTO"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseAccountDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/transactions/{id}/link-recurring-payment/{recurringPaymentId}": {
+            "patch": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Link to recurring payment",
+                "description": "Links a transaction to a recurring payment and marks the payment as completed.",
+                "operationId": "linkRecurringPayment",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the transaction",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "recurringPaymentId",
+                        "in": "path",
+                        "description": "ID of the recurring payment",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/transactions/{id}/exclude-from-summary": {
+            "patch": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Toggle summary exclusion",
+                "description": "Toggles whether the transaction is excluded from financial summaries.",
+                "operationId": "toggleExcludeFromSummary",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the transaction",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/summary/{accountId}": {
+            "get": {
+                "tags": [
+                    "Summary Management"
+                ],
+                "summary": "Get Account Summary",
+                "description": "Retrieves the total income, expense, and balance for an account within a date range",
+                "operationId": "getAccountSummary",
+                "parameters": [
+                    {
+                        "name": "accountId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "startDate",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "endDate",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                ],
+                "responses": {
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "200": {
+                        "description": "Account summary retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/summary/{accountId}/categories/income": {
+            "get": {
+                "tags": [
+                    "Summary Management"
+                ],
+                "summary": "Get Category Income Summary",
+                "description": "Retrieves the income breakdown by category for an account within a date range",
+                "operationId": "getCategoryIncomeSummary",
+                "parameters": [
+                    {
+                        "name": "accountId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "startDate",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "endDate",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                ],
+                "responses": {
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "200": {
+                        "description": "Category income summary retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/summary/{accountId}/categories/expense": {
+            "get": {
+                "tags": [
+                    "Summary Management"
+                ],
+                "summary": "Get Category Expense Summary",
+                "description": "Retrieves the expense breakdown by category for an account within a date range",
+                "operationId": "getCategoryExpenseSummary",
+                "parameters": [
+                    {
+                        "name": "accountId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "startDate",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "endDate",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                ],
+                "responses": {
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "200": {
+                        "description": "Category expense summary retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/balance": {
+            "get": {
+                "tags": [
+                    "Balance Management"
+                ],
+                "summary": "Get Net Balance",
+                "description": "Retrieves the net balance across all accounts for the current user",
+                "operationId": "getNetBalance",
+                "responses": {
+                    "200": {
+                        "description": "Net balance retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Insufficient permissions"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Invalid or missing token"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/balance/{accountId}": {
+            "get": {
+                "tags": [
+                    "Balance Management"
+                ],
+                "summary": "Get Account Balance",
+                "description": "Retrieves the balance for a specific account for the current user",
+                "operationId": "getAccountBalance",
+                "parameters": [
+                    {
+                        "name": "accountId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "404": {
+                        "description": "Not Found - Account does not exist or access denied"
+                    },
+                    "200": {
+                        "description": "Account balance retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Insufficient permissions"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Invalid or missing token"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/audit-logs": {
+            "get": {
+                "tags": [
+                    "Audit Logs"
+                ],
+                "summary": "Get audit logs",
+                "description": "Retrieves all audit log entries for the current tenant, ordered by timestamp descending.",
+                "operationId": "findAll_3",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseListAuditLogDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/accounts/default": {
+            "get": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Get default account",
+                "description": "Retrieves the default account for the authenticated user.",
+                "operationId": "getDefault",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseAccountDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "TransactionDTO": {
+                "type": "object",
+                "description": "Data Transfer Object for Transaction details",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Unique identifier of the transaction",
+                        "readOnly": true
+                    },
+                    "amount": {
+                        "type": "number",
+                        "description": "Amount of the transaction",
+                        "example": 50.0,
+                        "minimum": 0.01
+                    },
+                    "transactionType": {
+                        "type": "string",
+                        "description": "Type of transaction (DEBIT or CREDIT)",
+                        "enum": [
+                            "DEBIT",
+                            "CREDIT"
+                        ],
+                        "example": "DEBIT"
+                    },
+                    "dateTime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Date and time of the transaction",
+                        "example": "2023-10-27T10:00:00"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Description of the transaction",
+                        "example": "Grocery shopping"
+                    },
+                    "categoryId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "ID of the associated category",
+                        "example": 1
+                    },
+                    "categoryName": {
+                        "type": "string",
+                        "description": "Name of the associated category",
+                        "readOnly": true
+                    },
+                    "accountId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "ID of the associated account",
+                        "example": 1
+                    },
+                    "accountName": {
+                        "type": "string",
+                        "description": "Name of the associated account",
+                        "readOnly": true
+                    },
+                    "counterpartyName": {
+                        "type": "string",
+                        "description": "Name of the counterparty",
+                        "example": "Walmart"
+                    },
+                    "smsBody": {
+                        "type": "string",
+                        "description": "Original SMS body (for tracking)",
+                        "example": "Spent $50 at Walmart"
+                    },
+                    "smsSender": {
+                        "type": "string",
+                        "description": "Sender of the SMS",
+                        "example": "BANK-ALERT"
+                    },
+                    "smsHash": {
+                        "type": "string",
+                        "description": "Transaction hash for duplicate detection",
+                        "readOnly": true
+                    },
+                    "recurringPaymentId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "ID of the linked recurring payment",
+                        "example": 1
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Version for optimistic locking",
+                        "example": 0
+                    },
+                    "excludeFromSummary": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "accountId",
+                    "amount",
+                    "categoryId",
+                    "dateTime",
+                    "transactionType"
+                ]
+            },
+            "ApiResponseTransactionDTO": {
+                "type": "object",
+                "description": "Generic standard API response wrapper class",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates whether the request was successful or not",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "A friendly response message detailing success status or failure context",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/TransactionDTO",
+                        "description": "The core generic payload body matching the actual requested resource representation"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the response was generated"
+                    }
+                }
+            },
+            "RegexPatternDTO": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "pattern": {
+                        "type": "string"
+                    },
+                    "transactionType": {
+                        "type": "string",
+                        "enum": [
+                            "DEBIT",
+                            "CREDIT"
+                        ]
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "isActive": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "name",
+                    "pattern",
+                    "transactionType"
+                ]
+            },
+            "RecurringPaymentDTO": {
+                "type": "object",
+                "description": "Data Transfer Object for Recurring Payment details",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Unique identifier of the recurring payment",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the payment",
+                        "example": "Netflix Subscription"
+                    },
+                    "amount": {
+                        "type": "number",
+                        "description": "Amount of the payment",
+                        "example": 15.99,
+                        "minimum": 0.01
+                    },
+                    "dueDay": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Day of the month the payment is due",
+                        "example": 15,
+                        "maximum": 31,
+                        "minimum": 1
+                    },
+                    "expiryDate": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "Expiry date of the recurring payment",
+                        "example": "2026-01-01"
+                    },
+                    "lastCompletedDate": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "Date when the payment was last completed",
+                        "example": "2023-10-15"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Version for optimistic locking",
+                        "example": 0
+                    },
+                    "isCompleted": {
+                        "type": "boolean",
+                        "description": "Whether the payment for the current period is completed",
+                        "example": false
+                    }
+                },
+                "required": [
+                    "amount",
+                    "dueDay",
+                    "name"
+                ]
+            },
+            "ApiResponseRecurringPaymentDTO": {
+                "type": "object",
+                "description": "Generic standard API response wrapper class",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates whether the request was successful or not",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "A friendly response message detailing success status or failure context",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/RecurringPaymentDTO",
+                        "description": "The core generic payload body matching the actual requested resource representation"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the response was generated"
+                    }
+                }
+            },
+            "ApiResponseVoid": {
+                "type": "object",
+                "description": "Generic standard API response wrapper class",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates whether the request was successful or not",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "A friendly response message detailing success status or failure context",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "type": "object",
+                        "description": "The core generic payload body matching the actual requested resource representation"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the response was generated"
+                    }
+                }
+            },
+            "ToggleRequest": {
+                "type": "object",
+                "description": "Request object for toggling all payments",
+                "properties": {
+                    "completed": {
+                        "type": "boolean",
+                        "description": "Desired completion status",
+                        "example": true
+                    }
+                }
+            },
+            "CategoryDTO": {
+                "type": "object",
+                "description": "Data Transfer Object for Category details",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Unique identifier of the category",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the category",
+                        "example": "Groceries"
+                    },
+                    "type": {
+                        "type": "string",
+                        "description": "Type of the category (INCOME, EXPENSE)",
+                        "enum": [
+                            "EXPENSE",
+                            "INCOME"
+                        ],
+                        "example": "EXPENSE"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Version for optimistic locking",
+                        "example": 0
+                    }
+                },
+                "required": [
+                    "name",
+                    "type"
+                ]
+            },
+            "ApiResponseCategoryDTO": {
+                "type": "object",
+                "description": "Generic standard API response wrapper class",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates whether the request was successful or not",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "A friendly response message detailing success status or failure context",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/CategoryDTO",
+                        "description": "The core generic payload body matching the actual requested resource representation"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the response was generated"
+                    }
+                }
+            },
+            "AccountDTO": {
+                "type": "object",
+                "description": "Data Transfer Object for Account details",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Unique identifier of the account",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the account",
+                        "example": "Main Wallet"
+                    },
+                    "accountNumber": {
+                        "type": "string",
+                        "description": "Account number (if applicable)",
+                        "example": 1234567890
+                    },
+                    "bank": {
+                        "type": "string",
+                        "description": "Bank name",
+                        "example": "Chase Bank"
+                    },
+                    "currency": {
+                        "type": "string",
+                        "description": "Currency code of the account",
+                        "enum": [
+                            "USD",
+                            "EUR",
+                            "GBP",
+                            "INR",
+                            "AED",
+                            "SAR",
+                            "CAD",
+                            "AUD",
+                            "JPY",
+                            "CNY",
+                            "CHF",
+                            "SGD",
+                            "HKD",
+                            "NZD",
+                            "SEK",
+                            "NOK",
+                            "DKK",
+                            "ZAR",
+                            "MXN",
+                            "BRL"
+                        ],
+                        "example": "USD"
+                    },
+                    "expiryDate": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "Expiry date of the card/account",
+                        "example": "2025-12-31"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Description of the account",
+                        "example": "Primary checking account"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Version for optimistic locking",
+                        "example": 0
+                    },
+                    "isDefault": {
+                        "type": "boolean",
+                        "description": "Whether this is the default account for the user",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "currency",
+                    "name"
+                ]
+            },
+            "ApiResponseAccountDTO": {
+                "type": "object",
+                "description": "Generic standard API response wrapper class",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates whether the request was successful or not",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "A friendly response message detailing success status or failure context",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/AccountDTO",
+                        "description": "The core generic payload body matching the actual requested resource representation"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the response was generated"
+                    }
+                }
+            },
+            "TransferRequestDTO": {
+                "type": "object",
+                "description": "Request payload to initiate a fund transfer between two accounts",
+                "properties": {
+                    "fromAccountId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "The unique identifier of the source account to debit from",
+                        "example": 10
+                    },
+                    "toAccountId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "The unique identifier of the destination account to credit to",
+                        "example": 15
+                    },
+                    "amount": {
+                        "type": "number",
+                        "description": "The transfer amount. Must be greater than zero.",
+                        "example": 150.0,
+                        "minimum": 0.01
+                    },
+                    "dateTime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The date and time of the transfer. Defaults to current timestamp if not provided."
+                    },
+                    "categoryId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "The ID of the category associated with this transfer (usually a 'Transfer' category type)",
+                        "example": 5
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "An optional note or description describing the transfer",
+                        "example": "Monthly savings transfer"
+                    }
+                },
+                "required": [
+                    "amount",
+                    "categoryId",
+                    "fromAccountId",
+                    "toAccountId"
+                ]
+            },
+            "ApiResponse": {
+                "type": "object",
+                "description": "Generic standard API response wrapper class",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates whether the request was successful or not",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "A friendly response message detailing success status or failure context",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "type": "object",
+                        "description": "The core generic payload body matching the actual requested resource representation"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the response was generated"
+                    }
+                }
+            },
+            "TransactionSearchRequest": {
+                "type": "object",
+                "description": "Criteria for searching transactions",
+                "properties": {
+                    "fromDate": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "Start date for filtering",
+                        "example": "2023-10-01"
+                    },
+                    "toDate": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "End date for filtering",
+                        "example": "2023-10-31"
+                    },
+                    "transactionType": {
+                        "type": "string",
+                        "description": "Type of transaction to filter by",
+                        "enum": [
+                            "DEBIT",
+                            "CREDIT"
+                        ],
+                        "example": "DEBIT"
+                    },
+                    "query": {
+                        "type": "string",
+                        "description": "Free text search query for description or counterparty",
+                        "example": "Walmart"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Specific description to match",
+                        "example": "Groceries"
+                    },
+                    "counterpartyName": {
+                        "type": "string",
+                        "description": "Specific counterparty to match",
+                        "example": "Amazon"
+                    },
+                    "categoryId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Filter by category ID"
+                    },
+                    "accountId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Filter by account ID"
+                    },
+                    "recurringPaymentId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Filter by recurring payment ID"
+                    },
+                    "minAmount": {
+                        "type": "number",
+                        "description": "Minimum amount",
+                        "example": 10.0
+                    },
+                    "maxAmount": {
+                        "type": "number",
+                        "description": "Maximum amount",
+                        "example": 100.0
+                    },
+                    "isExcludeFromSummary": {
+                        "type": "boolean",
+                        "description": "Filter by summary exclusion status"
+                    }
+                }
+            },
+            "ApiResponseListTransactionDTO": {
+                "type": "object",
+                "description": "Generic standard API response wrapper class",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates whether the request was successful or not",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "A friendly response message detailing success status or failure context",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "type": "array",
+                        "description": "The core generic payload body matching the actual requested resource representation",
+                        "items": {
+                            "$ref": "#/components/schemas/TransactionDTO"
+                        }
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the response was generated"
+                    }
+                }
+            },
+            "SmsDTO": {
+                "type": "object",
+                "description": "Data Transfer Object representing an individual SMS message for processing",
+                "properties": {
+                    "body": {
+                        "type": "string",
+                        "description": "The core text body content of the SMS message",
+                        "example": "Spent $50.00 on your card ending in 1234 at Walmart"
+                    },
+                    "sender": {
+                        "type": "string",
+                        "description": "The sender ID or phone number that sent the SMS",
+                        "example": "CHASE-BANK"
+                    },
+                    "timestamp": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Unix timestamp representing when the SMS was received on the device",
+                        "example": 1698400800000
+                    }
+                },
+                "required": [
+                    "body"
+                ]
+            },
+            "BulkSmsDTO": {
+                "type": "object",
+                "description": "Request payload for submitting multiple SMS messages simultaneously",
+                "properties": {
+                    "messages": {
+                        "type": "array",
+                        "description": "List of SMS transactions to be processed",
+                        "items": {
+                            "$ref": "#/components/schemas/SmsDTO"
+                        }
+                    }
+                },
+                "required": [
+                    "messages"
+                ]
+            },
+            "ApiResponseSmsProcessingResultDTO": {
+                "type": "object",
+                "description": "Generic standard API response wrapper class",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates whether the request was successful or not",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "A friendly response message detailing success status or failure context",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/SmsProcessingResultDTO",
+                        "description": "The core generic payload body matching the actual requested resource representation"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the response was generated"
+                    }
+                }
+            },
+            "SmsProcessingResultDTO": {
+                "type": "object",
+                "properties": {
+                    "createdTransactions": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "duplicatesIdentified": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "patternNotMatched": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "processingError": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                }
+            },
+            "ApiResponseListRecurringPaymentDTO": {
+                "type": "object",
+                "description": "Generic standard API response wrapper class",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates whether the request was successful or not",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "A friendly response message detailing success status or failure context",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "type": "array",
+                        "description": "The core generic payload body matching the actual requested resource representation",
+                        "items": {
+                            "$ref": "#/components/schemas/RecurringPaymentDTO"
+                        }
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the response was generated"
+                    }
+                }
+            },
+            "ApiResponseListCategoryDTO": {
+                "type": "object",
+                "description": "Generic standard API response wrapper class",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates whether the request was successful or not",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "A friendly response message detailing success status or failure context",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "type": "array",
+                        "description": "The core generic payload body matching the actual requested resource representation",
+                        "items": {
+                            "$ref": "#/components/schemas/CategoryDTO"
+                        }
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the response was generated"
+                    }
+                }
+            },
+            "ApiResponseListAuditLogDTO": {
+                "type": "object",
+                "description": "Generic standard API response wrapper class",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates whether the request was successful or not",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "A friendly response message detailing success status or failure context",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "type": "array",
+                        "description": "The core generic payload body matching the actual requested resource representation",
+                        "items": {
+                            "$ref": "#/components/schemas/AuditLogDTO"
+                        }
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the response was generated"
+                    }
+                }
+            },
+            "AuditLogDTO": {
+                "type": "object",
+                "description": "Data Transfer Object representing an Audit Log entry",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Unique identifier of the audit log",
+                        "readOnly": true
+                    },
+                    "tenantId": {
+                        "type": "string",
+                        "description": "Tenant ID associated with the log",
+                        "example": "tenant-1"
+                    },
+                    "entityType": {
+                        "type": "string",
+                        "description": "Type of the entity that was affected",
+                        "example": "TRANSACTION"
+                    },
+                    "entityId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "ID of the entity that was affected",
+                        "example": 100
+                    },
+                    "action": {
+                        "type": "string",
+                        "description": "Action performed on the entity",
+                        "enum": [
+                            "CREATE",
+                            "UPDATE",
+                            "DELETE"
+                        ],
+                        "example": "CREATE"
+                    },
+                    "username": {
+                        "type": "string",
+                        "description": "Username of the user who performed the action",
+                        "example": "john.doe"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the action occurred",
+                        "example": "2023-10-27T10:00:00"
+                    },
+                    "changes": {
+                        "type": "string",
+                        "description": "JSON representation of the changes made",
+                        "example": {
+                            "amount": [
+                                100.0,
+                                150.0
+                            ]
+                        }
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Human-readable description of the action",
+                        "example": "Created new transaction"
+                    },
+                    "requestPath": {
+                        "type": "string",
+                        "description": "HTTP request path that triggered the action",
+                        "example": "/api/transactions"
+                    },
+                    "requestMethod": {
+                        "type": "string",
+                        "description": "HTTP request method that triggered the action",
+                        "example": "POST"
+                    }
+                }
+            },
+            "ApiResponseListAccountDTO": {
+                "type": "object",
+                "description": "Generic standard API response wrapper class",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates whether the request was successful or not",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "A friendly response message detailing success status or failure context",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "type": "array",
+                        "description": "The core generic payload body matching the actual requested resource representation",
+                        "items": {
+                            "$ref": "#/components/schemas/AccountDTO"
+                        }
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the response was generated"
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "name": "bearerAuth",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    }
+}
