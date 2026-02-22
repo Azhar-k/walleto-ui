@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../providers/core_providers.dart';
-import '../models/models.dart';
-import '../core/theme/app_theme.dart';
+import '../models/models.dart'; // needed by _TransactionTile
+import '../core/theme/app_theme.dart'; // needed by _TransactionTile
 
 class TransactionsScreen extends ConsumerStatefulWidget {
   const TransactionsScreen({super.key});
@@ -80,61 +80,9 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
               separatorBuilder: (_, _) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final tx = transactions[index];
-                final isCredit = tx.transactionType == TransactionType.CREDIT;
-                final color = isCredit
-                    ? AppTheme.creditColor
-                    : AppTheme.debitColor;
-                final prefix = isCredit ? '+' : '-';
-
-                return ListTile(
-                  title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          tx.description ?? '',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Text(
-                        '$prefix ${tx.amount.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          color: color,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            tx.categoryName ?? '',
-                            style: TextStyle(
-                              color: Theme.of(context).primaryColor,
-                              fontSize: 12,
-                            ),
-                          ),
-                          const Text(' • '),
-                          Text(
-                            tx.accountName ?? '',
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        DateFormat.yMMMd().add_jm().format(tx.dateTime),
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ],
-                  ),
-                  onTap: () {
-                    // view details or edit
-                    context.push('/transactions/edit', extra: tx);
-                  },
+                return _TransactionTile(
+                  tx: tx,
+                  onTap: () => context.push('/transactions/edit', extra: tx),
                 );
               },
             ),
@@ -159,6 +107,159 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/transactions/new'),
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+// ─── Per-item widget with expandable description ─────────────────────────────
+
+class _TransactionTile extends StatefulWidget {
+  final Transaction tx;
+  final VoidCallback onTap;
+
+  const _TransactionTile({required this.tx, required this.onTap});
+
+  @override
+  State<_TransactionTile> createState() => _TransactionTileState();
+}
+
+class _TransactionTileState extends State<_TransactionTile> {
+  bool _descExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final tx = widget.tx;
+    final isCredit = tx.transactionType == TransactionType.CREDIT;
+    final color = isCredit ? AppTheme.creditColor : AppTheme.debitColor;
+    final prefix = isCredit ? '+' : '−';
+    final hasDesc = (tx.description ?? '').trim().isNotEmpty;
+    final hasCounterparty = (tx.counterpartyName ?? '').trim().isNotEmpty;
+
+    // Short preview: first 3 words of description
+    final words = (tx.description ?? '').trim().split(RegExp(r'\s+'));
+    final shortDesc = words.take(3).join(' ');
+    final descIsTruncated = words.length > 3;
+
+    return InkWell(
+      onTap: widget.onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Primary row: amount (big) ────────────────────────────────────
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Category chip
+                if ((tx.categoryName ?? '').isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      tx.categoryName!,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: color,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                const Spacer(),
+                // Amount — the star of the show
+                Text(
+                  '$prefix ₹${tx.amount.toStringAsFixed(2)}',
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            // ── Secondary row: account • counterparty • date ─────────────────
+            Row(
+              children: [
+                if ((tx.accountName ?? '').isNotEmpty) ...[
+                  const Icon(
+                    Icons.account_balance_wallet,
+                    size: 12,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    tx.accountName!,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+                if (hasCounterparty) ...[
+                  const Text(
+                    '  ·  ',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                  const Icon(
+                    Icons.person_outline,
+                    size: 12,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(width: 3),
+                  Flexible(
+                    child: Text(
+                      tx.counterpartyName!,
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+                const Spacer(),
+                Text(
+                  DateFormat.MMMd().add_jm().format(tx.dateTime),
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                ),
+              ],
+            ),
+            // ── Collapsible description ──────────────────────────────────────
+            if (hasDesc) ...[
+              const SizedBox(height: 4),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      _descExpanded ? (tx.description ?? '') : shortDesc,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                  if (descIsTruncated)
+                    GestureDetector(
+                      onTap: () =>
+                          setState(() => _descExpanded = !_descExpanded),
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 4),
+                        child: Icon(
+                          _descExpanded ? Icons.expand_less : Icons.expand_more,
+                          size: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
