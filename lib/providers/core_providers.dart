@@ -6,6 +6,7 @@ import '../services/category_service.dart';
 import '../services/transaction_service.dart';
 import '../services/additional_services.dart';
 import '../services/summary_service.dart';
+import '../services/audit_service.dart';
 import '../models/models.dart';
 
 final dioProvider = Provider<Dio>((ref) {
@@ -43,6 +44,10 @@ final recurringPaymentServiceProvider = Provider((ref) {
 
 final regexServiceProvider = Provider((ref) {
   return RegexService(ref.watch(coreDioProvider));
+});
+
+final auditServiceProvider = Provider((ref) {
+  return AuditService(ref.watch(coreDioProvider));
 });
 
 // State Notifiers / Future Providers

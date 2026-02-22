@@ -197,3 +197,36 @@ class RegexPattern {
       _$RegexPatternFromJson(json);
   Map<String, dynamic> toJson() => _$RegexPatternToJson(this);
 }
+
+@JsonSerializable()
+class AuditLog {
+  final int? id;
+  final String? tenantId;
+  final String? entityType;
+  final int? entityId;
+  final String? action;
+  final String? username;
+  final DateTime? timestamp;
+  final String? changes;
+  final String? description;
+  final String? requestPath;
+  final String? requestMethod;
+
+  AuditLog({
+    this.id,
+    this.tenantId,
+    this.entityType,
+    this.entityId,
+    this.action,
+    this.username,
+    this.timestamp,
+    this.changes,
+    this.description,
+    this.requestPath,
+    this.requestMethod,
+  });
+
+  factory AuditLog.fromJson(Map<String, dynamic> json) =>
+      _$AuditLogFromJson(json);
+  Map<String, dynamic> toJson() => _$AuditLogToJson(this);
+}

@@ -17,6 +17,7 @@ import 'package:walleto_ui/screens/summary_screen.dart';
 import 'package:walleto_ui/screens/scan_sms_screen.dart';
 import 'package:walleto_ui/screens/regex_management_screen.dart';
 import 'package:walleto_ui/widgets/main_navigation_shell.dart';
+import 'package:walleto_ui/screens/audit_logs_screen.dart';
 import 'package:walleto_ui/models/models.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -138,6 +139,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/regex-patterns',
       builder: (context, state) => RegexManagementScreen(),
+    ),
+    GoRoute(
+      path: '/audit-logs',
+      builder: (context, state) => const AuditLogsScreen(),
     ),
     GoRoute(
       path: '/settings',

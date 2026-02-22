@@ -183,3 +183,33 @@ Map<String, dynamic> _$RegexPatternToJson(RegexPattern instance) =>
       'isActive': instance.isActive,
       'version': instance.version,
     };
+
+AuditLog _$AuditLogFromJson(Map<String, dynamic> json) => AuditLog(
+  id: (json['id'] as num?)?.toInt(),
+  tenantId: json['tenantId'] as String?,
+  entityType: json['entityType'] as String?,
+  entityId: (json['entityId'] as num?)?.toInt(),
+  action: json['action'] as String?,
+  username: json['username'] as String?,
+  timestamp: json['timestamp'] == null
+      ? null
+      : DateTime.parse(json['timestamp'] as String),
+  changes: json['changes'] as String?,
+  description: json['description'] as String?,
+  requestPath: json['requestPath'] as String?,
+  requestMethod: json['requestMethod'] as String?,
+);
+
+Map<String, dynamic> _$AuditLogToJson(AuditLog instance) => <String, dynamic>{
+  'id': instance.id,
+  'tenantId': instance.tenantId,
+  'entityType': instance.entityType,
+  'entityId': instance.entityId,
+  'action': instance.action,
+  'username': instance.username,
+  'timestamp': instance.timestamp?.toIso8601String(),
+  'changes': instance.changes,
+  'description': instance.description,
+  'requestPath': instance.requestPath,
+  'requestMethod': instance.requestMethod,
+};

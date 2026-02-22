@@ -33,44 +33,41 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
         break;
     }
   }
-  
+
   void _logout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
     if (context.mounted) {
-       context.go('/login');
+      context.go('/login');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Walleto'),
-      ),
+      appBar: AppBar(title: const Text('Walleto')),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
             const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Color(0xFF6200EE),
-              ),
+              decoration: BoxDecoration(color: Color(0xFF6200EE)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                   Icon(Icons.account_balance_wallet, color: Colors.white, size: 48),
-                   SizedBox(height: 16),
-                   Text(
-                    'Walleto Menu',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                    ),
+                  Icon(
+                    Icons.account_balance_wallet,
+                    color: Colors.white,
+                    size: 48,
                   ),
-                ]
-              )
+                  SizedBox(height: 16),
+                  Text(
+                    'Walleto Menu',
+                    style: TextStyle(color: Colors.white, fontSize: 24),
+                  ),
+                ],
+              ),
             ),
             ListTile(
               leading: const Icon(Icons.refresh),
@@ -110,6 +107,14 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
               onTap: () {
                 Navigator.pop(context);
                 context.push('/regex-patterns');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.history),
+              title: const Text('Audit Logs'),
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/audit-logs');
               },
             ),
             ListTile(
