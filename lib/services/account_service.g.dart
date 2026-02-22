@@ -49,7 +49,7 @@ class _AccountService implements AccountService {
   }
 
   @override
-  Future<Account> getAccountById(int id) async {
+  Future<Account> getDefaultAccount() async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
@@ -58,7 +58,7 @@ class _AccountService implements AccountService {
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/api/accounts/${id}',
+            '/api/accounts/default',
             queryParameters: queryParameters,
             data: _data,
           )

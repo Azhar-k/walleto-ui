@@ -56,12 +56,8 @@ final categoriesProvider = FutureProvider<List<Category>>((ref) async {
   return await service.getCategories();
 });
 
-final netBalanceProvider = FutureProvider<double>((ref) async {
-    final service = ref.watch(summaryServiceProvider);
-    return await service.getNetBalance();
-});
-
-class TransactionSearchNotifier extends StateNotifier<AsyncValue<List<Transaction>>> {
+class TransactionSearchNotifier
+    extends StateNotifier<AsyncValue<List<Transaction>>> {
   final TransactionService service;
 
   TransactionSearchNotifier(this.service) : super(const AsyncValue.loading()) {
@@ -79,7 +75,11 @@ class TransactionSearchNotifier extends StateNotifier<AsyncValue<List<Transactio
   }
 }
 
-final transactionSearchProvider = StateNotifierProvider<TransactionSearchNotifier, AsyncValue<List<Transaction>>>((ref) {
-  final service = ref.watch(transactionServiceProvider);
-  return TransactionSearchNotifier(service);
-});
+final transactionSearchProvider =
+    StateNotifierProvider<
+      TransactionSearchNotifier,
+      AsyncValue<List<Transaction>>
+    >((ref) {
+      final service = ref.watch(transactionServiceProvider);
+      return TransactionSearchNotifier(service);
+    });

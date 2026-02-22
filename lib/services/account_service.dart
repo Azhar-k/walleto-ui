@@ -11,8 +11,8 @@ abstract class AccountService {
   @GET('/api/accounts')
   Future<List<Account>> getAccounts();
 
-  @GET('/api/accounts/{id}')
-  Future<Account> getAccountById(@Path() int id);
+  @GET('/api/accounts/default')
+  Future<Account> getDefaultAccount();
 
   @POST('/api/accounts')
   Future<Account> createAccount(@Body() Account account);
