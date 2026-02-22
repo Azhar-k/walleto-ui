@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:walleto_ui/screens/login_screen.dart';
 import 'package:walleto_ui/screens/register_screen.dart';
 import 'package:walleto_ui/screens/accounts_screen.dart';
+import 'package:walleto_ui/screens/account_details_screen.dart';
 import 'package:walleto_ui/screens/account_form_screen.dart';
 import 'package:walleto_ui/screens/categories_screen.dart';
 import 'package:walleto_ui/screens/category_form_screen.dart';
@@ -28,17 +29,16 @@ final GoRouter appRouter = GoRouter(
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final isLoggedIn = token != null && token.isNotEmpty;
-    final isLoggingIn = state.matchedLocation == '/login' || state.matchedLocation == '/register';
+    final isLoggingIn =
+        state.matchedLocation == '/login' ||
+        state.matchedLocation == '/register';
 
     if (!isLoggedIn && !isLoggingIn) return '/login';
     if (isLoggedIn && isLoggingIn) return '/summary';
     return null;
   },
   routes: [
-    GoRoute(
-      path: '/login',
-      builder: (context, state) => const LoginScreen(),
-    ),
+    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(
       path: '/register',
       builder: (context, state) => const RegisterScreen(),
@@ -52,21 +52,34 @@ final GoRouter appRouter = GoRouter(
           builder: (context, state) => const SummaryScreen(),
         ),
         GoRoute(
-            path: '/accounts',
-            builder: (context, state) => const AccountsScreen(),
-            routes: [
-              GoRoute(
-                path: 'new',
-                builder: (context, state) => const AccountFormScreen(),
-              ),
-              GoRoute(
-                path: 'edit',
-                builder: (context, state) {
-                  final account = state.extra as Account;
-                  return AccountFormScreen(existingAccount: account);
-                },
-              ),
-            ]),
+          path: '/accounts',
+          builder: (context, state) => const AccountsScreen(),
+          routes: [
+            GoRoute(
+              path: 'new',
+              builder: (context, state) => const AccountFormScreen(),
+            ),
+            GoRoute(
+              path: 'edit',
+              builder: (context, state) {
+                final account = state.extra as Account;
+                return AccountFormScreen(existingAccount: account);
+              },
+            ),
+            GoRoute(
+              path: ':id',
+              builder: (context, state) {
+                final idStr = state.pathParameters['id']!;
+                final accountId = int.tryParse(idStr) ?? 0;
+                final account = state.extra as Account?;
+                return AccountDetailsScreen(
+                  accountId: accountId,
+                  initialAccount: account,
+                );
+              },
+            ),
+          ],
+        ),
         GoRoute(
           path: '/transactions',
           builder: (context, state) => const TransactionsScreen(),
@@ -82,7 +95,7 @@ final GoRouter appRouter = GoRouter(
                 return TransactionFormScreen(existingTransaction: tx);
               },
             ),
-          ]
+          ],
         ),
       ],
     ),
@@ -101,16 +114,13 @@ final GoRouter appRouter = GoRouter(
             return RecurringPaymentFormScreen(existingPayment: rp);
           },
         ),
-      ]
+      ],
     ),
     GoRoute(
       path: '/categories',
       builder: (context, state) => CategoriesScreen(),
       routes: [
-        GoRoute(
-          path: 'new',
-          builder: (context, state) => CategoryFormScreen(),
-        ),
+        GoRoute(path: 'new', builder: (context, state) => CategoryFormScreen()),
         GoRoute(
           path: 'edit',
           builder: (context, state) {
@@ -118,23 +128,23 @@ final GoRouter appRouter = GoRouter(
             return CategoryFormScreen(existingCategory: category);
           },
         ),
-      ]
+      ],
     ),
-     GoRoute(
+    GoRoute(
       path: '/self-transfer',
       builder: (context, state) => SelfTransferScreen(),
     ),
-     GoRoute(
-      path: '/scan-sms',
-      builder: (context, state) => ScanSmsScreen(),
-    ),
-     GoRoute(
+    GoRoute(path: '/scan-sms', builder: (context, state) => ScanSmsScreen()),
+    GoRoute(
       path: '/regex-patterns',
       builder: (context, state) => RegexManagementScreen(),
     ),
-     GoRoute(
+    GoRoute(
       path: '/settings',
-      builder: (context, state) => const Scaffold(appBar: null, body: Center(child: Text('Settings Screen'))),
+      builder: (context, state) => const Scaffold(
+        appBar: null,
+        body: Center(child: Text('Settings Screen')),
+      ),
     ),
   ],
 );

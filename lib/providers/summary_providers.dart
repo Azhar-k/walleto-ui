@@ -135,3 +135,13 @@ final netBalanceProvider = FutureProvider<double>((ref) async {
   final service = ref.watch(summaryServiceProvider);
   return await service.getNetBalance();
 });
+
+// ── Individual Account Balance ───────────────────────────────────────────────
+
+final accountBalanceProvider = FutureProvider.family<double, int>((
+  ref,
+  accountId,
+) async {
+  final service = ref.watch(summaryServiceProvider);
+  return await service.getAccountBalance(accountId);
+});
