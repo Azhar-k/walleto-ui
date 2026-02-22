@@ -22,28 +22,35 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     super.initState();
     // Default 30 days
     _filters = {
-       "startDate": DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(const Duration(days: 30))),
-       "endDate": DateFormat('yyyy-MM-dd').format(DateTime.now()),
+      "fromDate": DateFormat(
+        'yyyy-MM-dd',
+      ).format(DateTime.now().subtract(const Duration(days: 30))),
+      "toDate": DateFormat('yyyy-MM-dd').format(DateTime.now()),
     };
     WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(transactionSearchProvider.notifier).search(_filters);
+      ref.read(transactionSearchProvider.notifier).search(_filters);
     });
   }
 
   void _openFilters() {
-      // In a real app this would open a complex bottom sheet or standard dialog
-      // for Date ranges, Type, Account, Category, Amount etc.
-      // For this step, we keep a simplified dialog to demonstrate flow
-      showDialog(
-         context: context,
-         builder: (ctx) => AlertDialog(
-            title: const Text('Filters'),
-            content: const Text('Advanced filtering implemented via backend /search endpoint.'),
-            actions: [
-               TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close'))
-            ],
-         )
-      );
+    // In a real app this would open a complex bottom sheet or standard dialog
+    // for Date ranges, Type, Account, Category, Amount etc.
+    // For this step, we keep a simplified dialog to demonstrate flow
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Filters'),
+        content: const Text(
+          'Advanced filtering implemented via backend /search endpoint.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -54,8 +61,11 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
       appBar: AppBar(
         title: const Text('Transactions'),
         actions: [
-           IconButton(icon: const Icon(Icons.filter_list), onPressed: _openFilters),
-        ]
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            onPressed: _openFilters,
+          ),
+        ],
       ),
       body: transactionsAsync.when(
         data: (transactions) {
@@ -63,40 +73,67 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
             return const Center(child: Text('No transactions found.'));
           }
           return RefreshIndicator(
-            onRefresh: () async => ref.read(transactionSearchProvider.notifier).search(_filters),
+            onRefresh: () async =>
+                ref.read(transactionSearchProvider.notifier).search(_filters),
             child: ListView.separated(
               itemCount: transactions.length,
               separatorBuilder: (_, _) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final tx = transactions[index];
-                final isCredit = tx.type == TransactionType.CREDIT;
-                final color = isCredit ? AppTheme.creditColor : AppTheme.debitColor;
+                final isCredit = tx.transactionType == TransactionType.CREDIT;
+                final color = isCredit
+                    ? AppTheme.creditColor
+                    : AppTheme.debitColor;
                 final prefix = isCredit ? '+' : '-';
-                
+
                 return ListTile(
                   title: Row(
-                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                     children: [
-                        Expanded(child: Text(tx.description, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
-                        Text('$prefix ${tx.account.currency ?? 'INR'} ${tx.amount.toStringAsFixed(2)}', style: TextStyle(color: color, fontWeight: FontWeight.bold)),
-                     ]
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          tx.description ?? '',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Text(
+                        '$prefix ${tx.amount.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          color: color,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                   subtitle: Column(
-                     crossAxisAlignment: CrossAxisAlignment.start,
-                     children: [
-                        Row(
-                           children: [
-                              Text(tx.category.name, style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 12)),
-                              const Text(' • '),
-                              Text(tx.account.accountName, style: const TextStyle(fontSize: 12)),
-                           ]
-                        ),
-                        Text(DateFormat.yMMMd().add_jm().format(tx.transactionDateTime), style: const TextStyle(fontSize: 12)),
-                     ]
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            tx.categoryName ?? '',
+                            style: TextStyle(
+                              color: Theme.of(context).primaryColor,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const Text(' • '),
+                          Text(
+                            tx.accountName ?? '',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        DateFormat.yMMMd().add_jm().format(tx.dateTime),
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ],
                   ),
                   onTap: () {
-                     // view details or edit
-                     context.push('/transactions/edit', extra: tx);
+                    // view details or edit
+                    context.push('/transactions/edit', extra: tx);
                   },
                 );
               },
@@ -110,7 +147,9 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
             children: [
               Text('Error loading transactions: $e'),
               ElevatedButton(
-                onPressed: () => ref.read(transactionSearchProvider.notifier).search(_filters),
+                onPressed: () => ref
+                    .read(transactionSearchProvider.notifier)
+                    .search(_filters),
                 child: const Text('Retry'),
               ),
             ],

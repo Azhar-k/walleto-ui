@@ -46,10 +46,10 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     );
 
     if (widget.existingTransaction != null) {
-      _type = widget.existingTransaction!.type;
-      _transactionDate = widget.existingTransaction!.transactionDateTime;
+      _type = widget.existingTransaction!.transactionType;
+      _transactionDate = widget.existingTransaction!.dateTime;
       _transactionTime = TimeOfDay.fromDateTime(
-        widget.existingTransaction!.transactionDateTime,
+        widget.existingTransaction!.dateTime,
       );
       _excludeFromSummary =
           widget.existingTransaction!.excludeFromSummary ?? false;
@@ -71,14 +71,17 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
         _transactionTime.minute,
       );
 
+      // Build a flat Transaction for the API
       final transaction = Transaction(
         id: widget.existingTransaction?.id,
         amount: double.parse(_amountController.text),
         description: _descriptionController.text.trim(),
-        transactionDateTime: dateTime,
-        type: _type,
-        category: _category!,
-        account: _account!,
+        dateTime: dateTime,
+        transactionType: _type,
+        categoryId: _category!.id,
+        categoryName: _category!.name,
+        accountId: _account!.id,
+        accountName: _account!.name,
         counterpartyName: _counterpartyController.text.trim(),
         excludeFromSummary: _excludeFromSummary,
       );
@@ -133,11 +136,11 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                   _account == null &&
                   _category == null) {
                 _account = accounts.firstWhere(
-                  (a) => a.id == widget.existingTransaction!.account.id,
+                  (a) => a.id == widget.existingTransaction!.accountId,
                   orElse: () => accounts.first,
                 );
                 _category = categories.firstWhere(
-                  (c) => c.id == widget.existingTransaction!.category.id,
+                  (c) => c.id == widget.existingTransaction!.categoryId,
                   orElse: () => categories.first,
                 );
               } else if (_account == null && accounts.isNotEmpty) {
@@ -273,7 +276,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                             .map(
                               (a) => DropdownMenuItem(
                                 value: a,
-                                child: Text(a.accountName),
+                                child: Text(a.name),
                               ),
                             )
                             .toList(),

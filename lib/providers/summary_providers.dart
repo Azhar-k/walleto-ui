@@ -120,7 +120,10 @@ final monthlySummaryProvider = FutureProvider<MonthlySummaryData>((ref) async {
   return MonthlySummaryData(
     totalIncome: (summary['totalIncome'] as num?)?.toDouble() ?? 0.0,
     totalExpense: (summary['totalExpense'] as num?)?.toDouble() ?? 0.0,
-    balance: (summary['balance'] as num?)?.toDouble() ?? 0.0,
+    balance:
+        (summary['netBalance'] as num?)?.toDouble() ??
+        (summary['balance'] as num?)?.toDouble() ??
+        0.0,
     expenseBreakdown: expenseBreakdown,
     incomeBreakdown: incomeBreakdown,
   );

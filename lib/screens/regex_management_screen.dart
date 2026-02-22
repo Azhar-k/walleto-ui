@@ -25,26 +25,39 @@ class RegexManagementScreen extends ConsumerWidget {
                 final regex = regexes[index];
                 return ListTile(
                   title: Row(
-                     children: [
-                        Text(regex.regexName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        if (regex.isSystem == true) ...[
-                           const SizedBox(width: 8),
-                           const Badge(label: Text('System'), backgroundColor: Colors.grey)
-                        ]
-                     ],
+                    children: [
+                      Text(
+                        regex.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      if (regex.isActive == false) ...[
+                        const SizedBox(width: 8),
+                        const Badge(
+                          label: Text('Inactive'),
+                          backgroundColor: Colors.grey,
+                        ),
+                      ],
+                    ],
                   ),
                   subtitle: Column(
-                     crossAxisAlignment: CrossAxisAlignment.start,
-                     children: [
-                        Text('Bank: ${regex.bankName} • Default: ${regex.defaultType.name}'),
-                        Text(regex.pattern, style: const TextStyle(fontFamily: 'monospace', fontSize: 12), maxLines: 2, overflow: TextOverflow.ellipsis),
-                     ]
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Type: ${regex.transactionType.name}'),
+                      Text(
+                        regex.pattern,
+                        style: const TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 12,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
-                  trailing: regex.isSystem == true ? null : IconButton(
+                  trailing: IconButton(
                     icon: const Icon(Icons.edit, size: 20),
                     onPressed: () {
-                         // Navigation to Edit Form
-                         // context.push('/regex-patterns/edit', extra: regex);
+                      // context.push('/regex-patterns/edit', extra: regex);
                     },
                   ),
                 );
@@ -57,7 +70,7 @@ class RegexManagementScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-             // context.push('/regex-patterns/new');
+          // context.push('/regex-patterns/new');
         },
         child: const Icon(Icons.add),
       ),

@@ -8,36 +8,40 @@ part of 'models.dart';
 
 Account _$AccountFromJson(Map<String, dynamic> json) => Account(
   id: (json['id'] as num?)?.toInt(),
-  accountName: json['accountName'] as String,
-  baseAccountNumber: json['baseAccountNumber'] as String?,
-  bankName: json['bankName'] as String?,
+  name: json['name'] as String,
+  accountNumber: json['accountNumber'] as String?,
+  bank: json['bank'] as String?,
   isDefault: json['isDefault'] as bool?,
-  cardExpiryDate: json['cardExpiryDate'] as String?,
+  expiryDate: json['expiryDate'] as String?,
   description: json['description'] as String?,
   currency: json['currency'] as String?,
+  version: (json['version'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$AccountToJson(Account instance) => <String, dynamic>{
   'id': instance.id,
-  'accountName': instance.accountName,
-  'baseAccountNumber': instance.baseAccountNumber,
-  'bankName': instance.bankName,
+  'name': instance.name,
+  'accountNumber': instance.accountNumber,
+  'bank': instance.bank,
   'isDefault': instance.isDefault,
-  'cardExpiryDate': instance.cardExpiryDate,
+  'expiryDate': instance.expiryDate,
   'description': instance.description,
   'currency': instance.currency,
+  'version': instance.version,
 };
 
 Category _$CategoryFromJson(Map<String, dynamic> json) => Category(
   id: (json['id'] as num?)?.toInt(),
   name: json['name'] as String,
   type: $enumDecode(_$CategoryTypeEnumMap, json['type']),
+  version: (json['version'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$CategoryToJson(Category instance) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
   'type': _$CategoryTypeEnumMap[instance.type]!,
+  'version': instance.version,
 };
 
 const _$CategoryTypeEnumMap = {
@@ -51,9 +55,10 @@ RecurringPayment _$RecurringPaymentFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
       amount: (json['amount'] as num).toDouble(),
       dueDay: (json['dueDay'] as num).toInt(),
-      expiryDate: json['expiryDate'] as String,
-      completed: json['completed'] as bool?,
+      expiryDate: json['expiryDate'] as String?,
+      isCompleted: json['isCompleted'] as bool?,
       lastCompletedDate: json['lastCompletedDate'] as String?,
+      version: (json['version'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$RecurringPaymentToJson(RecurringPayment instance) =>
@@ -63,41 +68,51 @@ Map<String, dynamic> _$RecurringPaymentToJson(RecurringPayment instance) =>
       'amount': instance.amount,
       'dueDay': instance.dueDay,
       'expiryDate': instance.expiryDate,
-      'completed': instance.completed,
+      'isCompleted': instance.isCompleted,
       'lastCompletedDate': instance.lastCompletedDate,
+      'version': instance.version,
     };
 
 Transaction _$TransactionFromJson(Map<String, dynamic> json) => Transaction(
   id: (json['id'] as num?)?.toInt(),
   amount: (json['amount'] as num).toDouble(),
-  description: json['description'] as String,
-  transactionDateTime: DateTime.parse(json['transactionDateTime'] as String),
-  type: $enumDecode(_$TransactionTypeEnumMap, json['type']),
-  category: Category.fromJson(json['category'] as Map<String, dynamic>),
-  account: Account.fromJson(json['account'] as Map<String, dynamic>),
+  transactionType: $enumDecode(
+    _$TransactionTypeEnumMap,
+    json['transactionType'],
+  ),
+  dateTime: DateTime.parse(json['dateTime'] as String),
+  description: json['description'] as String?,
+  categoryId: (json['categoryId'] as num?)?.toInt(),
+  categoryName: json['categoryName'] as String?,
+  accountId: (json['accountId'] as num?)?.toInt(),
+  accountName: json['accountName'] as String?,
   counterpartyName: json['counterpartyName'] as String?,
   smsBody: json['smsBody'] as String?,
   smsSender: json['smsSender'] as String?,
   smsHash: json['smsHash'] as String?,
-  linkedRecurringPaymentId: (json['linkedRecurringPaymentId'] as num?)?.toInt(),
+  recurringPaymentId: (json['recurringPaymentId'] as num?)?.toInt(),
   excludeFromSummary: json['excludeFromSummary'] as bool?,
+  version: (json['version'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$TransactionToJson(Transaction instance) =>
     <String, dynamic>{
       'id': instance.id,
       'amount': instance.amount,
+      'transactionType': _$TransactionTypeEnumMap[instance.transactionType]!,
+      'dateTime': instance.dateTime.toIso8601String(),
       'description': instance.description,
-      'transactionDateTime': instance.transactionDateTime.toIso8601String(),
-      'type': _$TransactionTypeEnumMap[instance.type]!,
-      'category': instance.category,
-      'account': instance.account,
+      'categoryId': instance.categoryId,
+      'categoryName': instance.categoryName,
+      'accountId': instance.accountId,
+      'accountName': instance.accountName,
       'counterpartyName': instance.counterpartyName,
       'smsBody': instance.smsBody,
       'smsSender': instance.smsSender,
       'smsHash': instance.smsHash,
-      'linkedRecurringPaymentId': instance.linkedRecurringPaymentId,
+      'recurringPaymentId': instance.recurringPaymentId,
       'excludeFromSummary': instance.excludeFromSummary,
+      'version': instance.version,
     };
 
 const _$TransactionTypeEnumMap = {
@@ -149,19 +164,22 @@ Map<String, dynamic> _$MonthlySummaryToJson(MonthlySummary instance) =>
 
 RegexPattern _$RegexPatternFromJson(Map<String, dynamic> json) => RegexPattern(
   id: (json['id'] as num?)?.toInt(),
-  regexName: json['regexName'] as String,
+  name: json['name'] as String,
   pattern: json['pattern'] as String,
-  bankName: json['bankName'] as String,
-  defaultType: $enumDecode(_$TransactionTypeEnumMap, json['defaultType']),
-  isSystem: json['isSystem'] as bool?,
+  transactionType: $enumDecode(
+    _$TransactionTypeEnumMap,
+    json['transactionType'],
+  ),
+  isActive: json['isActive'] as bool?,
+  version: (json['version'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$RegexPatternToJson(RegexPattern instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'regexName': instance.regexName,
+      'name': instance.name,
       'pattern': instance.pattern,
-      'bankName': instance.bankName,
-      'defaultType': _$TransactionTypeEnumMap[instance.defaultType]!,
-      'isSystem': instance.isSystem,
+      'transactionType': _$TransactionTypeEnumMap[instance.transactionType]!,
+      'isActive': instance.isActive,
+      'version': instance.version,
     };

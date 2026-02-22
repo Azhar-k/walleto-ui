@@ -40,7 +40,7 @@ class SummaryScreen extends ConsumerWidget {
                     // Account name
                     defaultAccountAsync.when(
                       data: (account) => Text(
-                        account.accountName,
+                        account.name,
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,

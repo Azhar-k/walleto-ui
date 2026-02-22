@@ -23,27 +23,39 @@ class AccountsScreen extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final account = accounts[index];
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.1),
                       child: const Icon(Icons.account_balance),
                     ),
                     title: Row(
                       children: [
-                        Text(account.accountName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        Text(
+                          account.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                         if (account.isDefault == true) ...[
                           const SizedBox(width: 8),
                           Badge(
                             label: const Text('Default'),
-                            backgroundColor: Theme.of(context).colorScheme.secondary,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.secondary,
                           ),
-                        ]
+                        ],
                       ],
                     ),
-                    subtitle: Text('${account.bankName ?? 'Unknown Bank'} • ${account.currency ?? 'INR'}'),
-                    // We don't have individual account balances in the basic Account model based on the schema, 
-                    // it usually comes from a separate summary API or is computed on the fly. 
+                    subtitle: Text(
+                      '${account.bank ?? 'Unknown Bank'} • ${account.currency ?? 'INR'}',
+                    ),
+                    // We don't have individual account balances in the basic Account model based on the schema,
+                    // it usually comes from a separate summary API or is computed on the fly.
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
                       // Navigate to account details

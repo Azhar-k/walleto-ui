@@ -51,17 +51,20 @@ class _ScanSmsScreenState extends ConsumerState<ScanSmsScreen> {
         },
       ];
 
-      // 3. Send to Backend
+      // 3. Send to Backend - wrapped in BulkSmsDTO shape
       final service = ref.read(smsServiceProvider);
-      final result = await service.processBatchSms(mockMessages);
+      final result =
+          await service.processBatchSms({'messages': mockMessages})
+              as Map<String, dynamic>? ??
+          {};
 
       // 4. Update UI
       setState(() {
-        final processed = result['processedCount'] ?? 0;
-        final ignored = result['ignoredCount'] ?? 0;
-        final errors = result['errorCount'] ?? 0;
+        final processed = result['createdTransactions'] ?? 0;
+        final ignored = result['duplicatesIdentified'] ?? 0;
+        final errors = result['processingError'] ?? 0;
         _resultMessage =
-            'Scan Complete!\n\nProcessed: $processed\nIgnored: $ignored\nErrors: $errors';
+            'Scan Complete!\n\nCreated: $processed\nDuplicates: $ignored\nErrors: $errors';
       });
 
       // Refresh transactions and balances
