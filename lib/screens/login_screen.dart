@@ -22,27 +22,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      
+
       final authService = ref.read(authServiceProvider);
-      
+
       try {
         final response = await authService.login(
           AuthRequest(
-            email: _emailController.text.trim(),
+            usernameOrEmail: _emailController.text.trim(),
             password: _passwordController.text,
           ),
         );
-        
+
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', response.accessToken);
-        
+
         if (mounted) {
           context.go('/summary');
         }
       } on DioException catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Login failed: ${e.response?.data?['message'] ?? e.message}')),
+            SnackBar(
+              content: Text(
+                'Login failed: ${e.response?.data?['message'] ?? e.message}',
+              ),
+            ),
           );
         }
       } finally {
@@ -75,22 +79,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const SizedBox(height: 32),
                     Text(
                       'Welcome to Walleto',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 32),
                     TextFormField(
                       controller: _emailController,
                       decoration: const InputDecoration(
-                        labelText: 'Email',
-                        prefixIcon: Icon(Icons.email),
+                        labelText: 'Username or Email',
+                        prefixIcon: Icon(Icons.person),
                       ),
                       keyboardType: TextInputType.emailAddress,
-                      validator: (value) => 
-                          value?.isEmpty ?? true ? 'Please enter your email' : null,
+                      validator: (value) => value?.isEmpty ?? true
+                          ? 'Please enter your email'
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -100,15 +106,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         prefixIcon: Icon(Icons.lock),
                       ),
                       obscureText: true,
-                      validator: (value) => 
-                          value?.isEmpty ?? true ? 'Please enter your password' : null,
+                      validator: (value) => value?.isEmpty ?? true
+                          ? 'Please enter your password'
+                          : null,
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: _isLoading ? null : _login,
-                      child: _isLoading 
-                          ? const CircularProgressIndicator(color: Colors.white) 
-                          : const Text('LOGIN', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              'LOGIN',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                     const SizedBox(height: 16),
                     TextButton(

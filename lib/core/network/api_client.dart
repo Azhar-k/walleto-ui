@@ -3,8 +3,15 @@ import 'package:flutter/foundation.dart';
 import 'auth_interceptor.dart';
 
 class ApiClient {
-  static const String coreBaseUrl = 'http://10.0.2.2:8080'; // 10.0.2.2 is loopback for Android emulator
-  static const String userBaseUrl = 'http://10.0.2.2:8073';
+  static String get coreBaseUrl {
+    if (kIsWeb) return 'http://localhost:8080';
+    return 'http://10.0.2.2:8080'; // Loopback for Android emulator
+  }
+
+  static String get userBaseUrl {
+    if (kIsWeb) return 'http://localhost:8073';
+    return 'http://10.0.2.2:8073';
+  }
 
   static Dio getCoreClient() {
     final dio = Dio(BaseOptions(

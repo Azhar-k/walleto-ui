@@ -15,13 +15,13 @@ abstract class AuthService {
 }
 
 class AuthRequest {
-  final String email;
+  final String usernameOrEmail;
   final String password;
 
-  AuthRequest({required this.email, required this.password});
-  
+  AuthRequest({required this.usernameOrEmail, required this.password});
+
   Map<String, dynamic> toJson() => {
-    'email': email,
+    'usernameOrEmail': usernameOrEmail,
     'password': password,
   };
 }
@@ -31,8 +31,12 @@ class RegisterRequest {
   final String username;
   final String password;
 
-  RegisterRequest({required this.email, required this.username, required this.password});
-  
+  RegisterRequest({
+    required this.email,
+    required this.username,
+    required this.password,
+  });
+
   Map<String, dynamic> toJson() => {
     'email': email,
     'username': username,
@@ -45,10 +49,10 @@ class AuthResponse {
   final String refreshToken;
 
   AuthResponse({required this.accessToken, required this.refreshToken});
-  
+
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
     // The API might wrap in an ApiResponse layer, checking that based on docs
-    final data = json['data'] ?? json; 
+    final data = json['data'] ?? json;
     return AuthResponse(
       accessToken: data['accessToken'],
       refreshToken: data['refreshToken'],
