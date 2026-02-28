@@ -43,6 +43,26 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen>
       'MMMM',
     ).format(DateTime(filterState.year, filterState.month));
 
+    final accounts = accountsAsync.valueOrNull ?? [];
+    Account? activeAccount = selectedAccount;
+    if (activeAccount == null) {
+      final defaultAccountOpt = defaultAccountAsync.valueOrNull;
+      if (defaultAccountOpt != null) {
+        activeAccount = accounts.firstWhere(
+          (a) => a.id == defaultAccountOpt.id,
+          orElse: () =>
+              accounts.isNotEmpty ? accounts.first : defaultAccountOpt,
+        );
+      } else if (accounts.isNotEmpty) {
+        activeAccount = accounts.first;
+      }
+    }
+    if (activeAccount != null &&
+        accounts.isNotEmpty &&
+        !accounts.any((a) => a.id == activeAccount!.id)) {
+      activeAccount = accounts.first;
+    }
+
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () async {
@@ -74,27 +94,6 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen>
                               fontSize: 14,
                             ),
                           );
-                        }
-
-                        // Determine the active account to display in dropdown
-                        Account? activeAccount = selectedAccount;
-                        if (activeAccount == null) {
-                          final defaultAccountOpt =
-                              defaultAccountAsync.valueOrNull;
-                          if (defaultAccountOpt != null) {
-                            activeAccount = accounts.firstWhere(
-                              (a) => a.id == defaultAccountOpt.id,
-                              orElse: () => accounts.first,
-                            );
-                          } else if (accounts.isNotEmpty) {
-                            activeAccount = accounts.first;
-                          }
-                        }
-
-                        // ensure activeAccount is really in the list to avoid Dropdown errors
-                        if (activeAccount != null &&
-                            !accounts.any((a) => a.id == activeAccount!.id)) {
-                          activeAccount = accounts.first;
                         }
 
                         return Container(
@@ -225,7 +224,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen>
                   context,
                   summary,
                   filterState,
-                  selectedAccount,
+                  activeAccount,
                 ),
                 loading: () => const Padding(
                   padding: EdgeInsets.all(32),
