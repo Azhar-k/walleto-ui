@@ -27,10 +27,19 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
   @override
   void initState() {
     super.initState();
+    _nameController = TextEditingController(
+      text: widget.existingCategory?.name,
+    );
     _type =
         widget.existingCategory?.type ??
         widget.defaultType ??
         CategoryType.expense;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
   }
 
   void _submit() async {
