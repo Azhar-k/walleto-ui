@@ -10,7 +10,9 @@ import '../core/theme/app_theme.dart';
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 
 class TransactionsScreen extends ConsumerStatefulWidget {
-  const TransactionsScreen({super.key});
+  final Map<String, dynamic>? initialFilters;
+
+  const TransactionsScreen({super.key, this.initialFilters});
 
   @override
   ConsumerState<TransactionsScreen> createState() => _TransactionsScreenState();
@@ -23,7 +25,24 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   @override
   void initState() {
     super.initState();
-    _applyDefaultFilters();
+    if (widget.initialFilters != null) {
+      _filters = Map<String, dynamic>.from(widget.initialFilters!);
+
+      // Attempt to load the selected account object if cached, so the chip reflects it
+      final acctId = _filters['accountId'];
+      if (acctId != null) {
+        final accounts = ref.read(accountsProvider).valueOrNull;
+        if (accounts != null) {
+          _selectedAccount = accounts.where((a) => a.id == acctId).firstOrNull;
+        }
+      }
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(transactionSearchProvider.notifier).search(_filters);
+      });
+    } else {
+      _applyDefaultFilters();
+    }
   }
 
   void _applyDefaultFilters() {

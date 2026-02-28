@@ -6,6 +6,7 @@ import '../providers/summary_providers.dart';
 import '../providers/core_providers.dart';
 import '../models/models.dart';
 import '../core/theme/app_theme.dart';
+import 'package:go_router/go_router.dart';
 
 class SummaryScreen extends ConsumerStatefulWidget {
   const SummaryScreen({super.key});
@@ -220,7 +221,12 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen>
             ),
             SliverToBoxAdapter(
               child: summaryAsync.when(
-                data: (summary) => _buildSummaryContent(context, summary),
+                data: (summary) => _buildSummaryContent(
+                  context,
+                  summary,
+                  filterState,
+                  selectedAccount,
+                ),
                 loading: () => const Padding(
                   padding: EdgeInsets.all(32),
                   child: Center(child: CircularProgressIndicator()),
@@ -256,6 +262,8 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen>
   Widget _buildSummaryContent(
     BuildContext context,
     MonthlySummaryData summary,
+    SummaryFilterState filterState,
+    Account? selectedAccount,
   ) {
     return AnimatedBuilder(
       animation: _tabController,
@@ -337,9 +345,21 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen>
                         ),
                         const SizedBox(height: 16),
                         _buildCategoryList(
-                          activeBreakdown,
+                          context,
                           activeTotal,
                           activeColor,
+                          activeBreakdown,
+                          selectedAccount?.id ?? 0,
+                          selectedAccount?.name ?? '',
+                          DateTime(filterState.year, filterState.month, 1),
+                          DateTime(
+                            filterState.year,
+                            filterState.month + 1,
+                            0,
+                            23,
+                            59,
+                            59,
+                          ),
                         ),
                       ],
                     ],
@@ -443,9 +463,14 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen>
   }
 
   Widget _buildCategoryList(
-    List<Map<String, dynamic>> breakdowns,
+    BuildContext context,
     double total,
     Color baseColor,
+    List<Map<String, dynamic>> breakdowns,
+    int accountId,
+    String accountName,
+    DateTime startDate,
+    DateTime endDate,
   ) {
     final colors = [
       baseColor,
@@ -470,6 +495,29 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen>
         final pct = total > 0 ? (amount / total) * 100 : 0;
 
         return ListTile(
+          onTap: () async {
+            final categories = await ref.read(categoriesProvider.future);
+            int? categoryId;
+            try {
+              final cat = categories.firstWhere(
+                (c) => c.name.toLowerCase() == categoryName.toLowerCase(),
+              );
+              categoryId = cat.id;
+            } catch (_) {}
+
+            if (context.mounted) {
+              context.go(
+                '/transactions',
+                extra: {
+                  'accountId': accountId,
+                  if (categoryId != null) 'categoryId': categoryId,
+                  'fromDate': startDate.toIso8601String().split('T')[0],
+                  'toDate': endDate.toIso8601String().split('T')[0],
+                  'excludeFromSummary': false,
+                },
+              );
+            }
+          },
           leading: Icon(Icons.circle, color: c, size: 16),
           title: Text(categoryName),
           subtitle: Text('$count transactions'),
