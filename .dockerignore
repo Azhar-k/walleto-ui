@@ -1,0 +1,28 @@
+# Flutter/Dart related
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+coverage/
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS Generated
+.DS_Store
+Thumbs.db
+
+# Git related
+.git/
+.gitignore
+.github/
+
+# Misc
+*.md
+Dockerfile
+.dockerignore
