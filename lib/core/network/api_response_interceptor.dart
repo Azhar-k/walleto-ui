@@ -2,10 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 /// Intercepts every response from the Core API and unwraps the
-/// ApiResponse envelope:  {"success":true, "data": <payload>}
+/// ApiResponse envelope:  {"success":true, "data": payload}
 ///
 /// After this interceptor the rest of the Retrofit-generated code
-/// receives <payload> directly, so List / object deserialisation works.
+/// receives payload directly, so List / object deserialisation works.
 class ApiResponseInterceptor extends Interceptor {
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {

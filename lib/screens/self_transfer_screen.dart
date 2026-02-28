@@ -101,7 +101,7 @@ class _SelfTransferScreenState extends ConsumerState<SelfTransferScreen> {
           return categoriesAsync.when(
             data: (categories) {
               final expenses = categories
-                  .where((c) => c.type == CategoryType.EXPENSE)
+                  .where((c) => c.type == CategoryType.expense)
                   .toList();
 
               return SingleChildScrollView(

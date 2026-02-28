@@ -11,7 +11,8 @@ class CategoriesScreen extends ConsumerStatefulWidget {
   ConsumerState<CategoriesScreen> createState() => _CategoriesScreenState();
 }
 
-class _CategoriesScreenState extends ConsumerState<CategoriesScreen> with SingleTickerProviderStateMixin {
+class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -45,14 +46,18 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> with Single
       ),
       body: categoriesAsync.when(
         data: (categories) {
-          final expenses = categories.where((c) => c.type == CategoryType.EXPENSE).toList();
-          final incomes = categories.where((c) => c.type == CategoryType.INCOME).toList();
+          final expenses = categories
+              .where((c) => c.type == CategoryType.expense)
+              .toList();
+          final incomes = categories
+              .where((c) => c.type == CategoryType.income)
+              .toList();
 
           return TabBarView(
             controller: _tabController,
             children: [
-              _buildCategoryList(expenses, CategoryType.EXPENSE),
-              _buildCategoryList(incomes, CategoryType.INCOME),
+              _buildCategoryList(expenses, CategoryType.expense),
+              _buildCategoryList(incomes, CategoryType.income),
             ],
           );
         },
@@ -61,8 +66,15 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> with Single
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-            final type = _tabController.index == 0 ? CategoryType.EXPENSE : CategoryType.INCOME;
-            Navigator.push(context, MaterialPageRoute(builder: (_) => CategoryFormScreen(defaultType: type)));
+          final type = _tabController.index == 0
+              ? CategoryType.expense
+              : CategoryType.income;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CategoryFormScreen(defaultType: type),
+            ),
+          );
         },
         child: const Icon(Icons.add),
       ),
@@ -71,7 +83,11 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> with Single
 
   Widget _buildCategoryList(List<Category> categories, CategoryType type) {
     if (categories.isEmpty) {
-      return Center(child: Text('No ${type == CategoryType.EXPENSE ? 'expense' : 'income'} categories found.'));
+      return Center(
+        child: Text(
+          'No ${type == CategoryType.expense ? 'expense' : 'income'} categories found.',
+        ),
+      );
     }
     return RefreshIndicator(
       onRefresh: () async => ref.refresh(categoriesProvider),
@@ -82,18 +98,31 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> with Single
           final category = categories[index];
           return ListTile(
             leading: CircleAvatar(
-              backgroundColor: type == CategoryType.EXPENSE 
-                ? Theme.of(context).colorScheme.error.withOpacity(0.1)
-                : Colors.green.withOpacity(0.1),
-              foregroundColor: type == CategoryType.EXPENSE 
-                ? Theme.of(context).colorScheme.error
-                : Colors.green,
-              child: Icon(type == CategoryType.EXPENSE ? Icons.trending_down : Icons.trending_up),
+              backgroundColor: type == CategoryType.expense
+                  ? Theme.of(context).colorScheme.error.withValues(alpha: 0.1)
+                  : Colors.green.withValues(alpha: 0.1),
+              foregroundColor: type == CategoryType.expense
+                  ? Theme.of(context).colorScheme.error
+                  : Colors.green,
+              child: Icon(
+                type == CategoryType.expense
+                    ? Icons.trending_down
+                    : Icons.trending_up,
+              ),
             ),
-            title: Text(category.name, style: const TextStyle(fontWeight: FontWeight.w500)),
+            title: Text(
+              category.name,
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
             trailing: IconButton(
               icon: const Icon(Icons.edit, size: 20),
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CategoryFormScreen(existingCategory: category))),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      CategoryFormScreen(existingCategory: category),
+                ),
+              ),
             ),
           );
         },

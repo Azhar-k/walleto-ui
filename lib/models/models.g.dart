@@ -45,8 +45,8 @@ Map<String, dynamic> _$CategoryToJson(Category instance) => <String, dynamic>{
 };
 
 const _$CategoryTypeEnumMap = {
-  CategoryType.INCOME: 'INCOME',
-  CategoryType.EXPENSE: 'EXPENSE',
+  CategoryType.income: 'INCOME',
+  CategoryType.expense: 'EXPENSE',
 };
 
 RecurringPayment _$RecurringPaymentFromJson(Map<String, dynamic> json) =>
@@ -116,8 +116,8 @@ Map<String, dynamic> _$TransactionToJson(Transaction instance) =>
     };
 
 const _$TransactionTypeEnumMap = {
-  TransactionType.CREDIT: 'CREDIT',
-  TransactionType.DEBIT: 'DEBIT',
+  TransactionType.credit: 'CREDIT',
+  TransactionType.debit: 'DEBIT',
 };
 
 CategorySummaryBreakdown _$CategorySummaryBreakdownFromJson(

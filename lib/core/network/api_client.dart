@@ -5,13 +5,13 @@ import 'api_response_interceptor.dart';
 
 class ApiClient {
   static String get coreBaseUrl {
-    if (kIsWeb) return 'http://localhost:8080';
-    return 'http://10.0.2.2:8080'; // Loopback for Android emulator
+    // if (kIsWeb) return 'http://localhost:8080';
+    return 'https://9aad-2401-4900-8fdd-19a5-23cd-429a-2f67-4f06.ngrok-free.app/api/core'; // Loopback for Android emulator
   }
 
   static String get userBaseUrl {
-    if (kIsWeb) return 'http://localhost:8073';
-    return 'http://10.0.2.2:8073';
+    // if (kIsWeb) return 'http://localhost:8073';
+    return 'https://9aad-2401-4900-8fdd-19a5-23cd-429a-2f67-4f06.ngrok-free.app/api/userservice';
   }
 
   static Dio getCoreClient() {

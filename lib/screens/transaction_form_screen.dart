@@ -21,7 +21,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
 
   Account? _account;
   Category? _category;
-  TransactionType _type = TransactionType.DEBIT; // Default Expense mapping
+  TransactionType _type = TransactionType.debit; // Default Expense mapping
 
   late TextEditingController _amountController;
   late TextEditingController _descriptionController;
@@ -225,9 +225,9 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                   .where(
                     (c) =>
                         c.type ==
-                        (_type == TransactionType.CREDIT
-                            ? CategoryType.INCOME
-                            : CategoryType.EXPENSE),
+                        (_type == TransactionType.credit
+                            ? CategoryType.income
+                            : CategoryType.expense),
                   )
                   .toList();
 
@@ -247,11 +247,11 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                       SegmentedButton<TransactionType>(
                         segments: const [
                           ButtonSegment(
-                            value: TransactionType.DEBIT,
+                            value: TransactionType.debit,
                             label: Text('Debit/Expense'),
                           ),
                           ButtonSegment(
-                            value: TransactionType.CREDIT,
+                            value: TransactionType.credit,
                             label: Text('Credit/Income'),
                           ),
                         ],

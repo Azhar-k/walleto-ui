@@ -49,7 +49,7 @@ class RecurringPaymentsScreen extends ConsumerWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(16),
-                color: Theme.of(context).primaryColor.withOpacity(0.05),
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -105,7 +105,7 @@ class RecurringPaymentsScreen extends ConsumerWidget {
 
                       return ListTile(
                         tileColor: isExpired
-                            ? Colors.orange.withOpacity(0.1)
+                            ? Colors.orange.withValues(alpha: 0.1)
                             : null,
                         title: Row(
                           children: [

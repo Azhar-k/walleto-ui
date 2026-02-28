@@ -228,7 +228,7 @@ class _AccountDetailsScreenState extends ConsumerState<AccountDetailsScreen> {
                       const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final tx = transactions[index];
-                    final isDebit = tx.transactionType == TransactionType.DEBIT;
+                    final isDebit = tx.transactionType == TransactionType.debit;
 
                     return ListTile(
                       onTap: () =>

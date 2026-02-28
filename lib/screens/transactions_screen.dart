@@ -606,7 +606,7 @@ class _TransactionTileState extends State<_TransactionTile> {
   @override
   Widget build(BuildContext context) {
     final tx = widget.tx;
-    final isCredit = tx.transactionType == TransactionType.CREDIT;
+    final isCredit = tx.transactionType == TransactionType.credit;
     final color = isCredit ? AppTheme.creditColor : AppTheme.debitColor;
     final prefix = isCredit ? '+' : '−';
     final hasDesc = (tx.description ?? '').trim().isNotEmpty;
