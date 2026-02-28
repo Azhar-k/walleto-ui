@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../providers/summary_providers.dart';
+import '../providers/core_providers.dart';
+import '../models/models.dart';
 import '../core/theme/app_theme.dart';
 
 class SummaryScreen extends ConsumerWidget {
@@ -14,6 +16,8 @@ class SummaryScreen extends ConsumerWidget {
     final summaryAsync = ref.watch(monthlySummaryProvider);
     final netBalanceAsync = ref.watch(netBalanceProvider);
     final defaultAccountAsync = ref.watch(defaultAccountProvider);
+    final selectedAccount = ref.watch(selectedAccountProvider);
+    final accountsAsync = ref.watch(accountsProvider);
 
     final monthName = DateFormat(
       'MMMM',
@@ -24,6 +28,8 @@ class SummaryScreen extends ConsumerWidget {
         onRefresh: () async {
           // ignore: unused_result
           await ref.refresh(defaultAccountProvider.future);
+          // ignore: unused_result
+          await ref.refresh(accountsProvider.future);
           // ignore: unused_result
           await ref.refresh(monthlySummaryProvider.future);
           // ignore: unused_result
@@ -37,21 +43,100 @@ class SummaryScreen extends ConsumerWidget {
                 color: Theme.of(context).primaryColor,
                 child: Column(
                   children: [
-                    // Account name
-                    defaultAccountAsync.when(
-                      data: (account) => Text(
-                        account.name,
-                        style: const TextStyle(
+                    // Account Selector
+                    accountsAsync.when(
+                      data: (accounts) {
+                        if (accounts.isEmpty) {
+                          return const Text(
+                            'No accounts available',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          );
+                        }
+
+                        // Determine the active account to display in dropdown
+                        Account? activeAccount = selectedAccount;
+                        if (activeAccount == null) {
+                          final defaultAccountOpt =
+                              defaultAccountAsync.valueOrNull;
+                          if (defaultAccountOpt != null) {
+                            activeAccount = accounts.firstWhere(
+                              (a) => a.id == defaultAccountOpt.id,
+                              orElse: () => accounts.first,
+                            );
+                          } else if (accounts.isNotEmpty) {
+                            activeAccount = accounts.first;
+                          }
+                        }
+
+                        // ensure activeAccount is really in the list to avoid Dropdown errors
+                        if (activeAccount != null &&
+                            !accounts.any((a) => a.id == activeAccount!.id)) {
+                          activeAccount = accounts.first;
+                        }
+
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<Account>(
+                              value: activeAccount,
+                              dropdownColor: Theme.of(context).primaryColor,
+                              icon: const Icon(
+                                Icons.arrow_drop_down,
+                                color: Colors.white,
+                              ),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              items: accounts.map((account) {
+                                return DropdownMenuItem<Account>(
+                                  value: account,
+                                  child: Text(account.name),
+                                );
+                              }).toList(),
+                              onChanged: (Account? newValue) {
+                                if (newValue != null &&
+                                    newValue.id != activeAccount?.id) {
+                                  ref
+                                          .read(
+                                            selectedAccountProvider.notifier,
+                                          )
+                                          .state =
+                                      newValue;
+
+                                  // Refresh summary to reflect the new account
+                                  ref.invalidate(monthlySummaryProvider);
+                                }
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                      loading: () => const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
                           color: Colors.white70,
-                          fontSize: 14,
+                          strokeWidth: 2,
                         ),
                       ),
-                      loading: () => const SizedBox.shrink(),
                       error: (_, _) => const Text(
-                        'No default account',
+                        'Error loading accounts',
                         style: TextStyle(color: Colors.white70, fontSize: 14),
                       ),
                     ),
+                    const SizedBox(height: 16),
                     const Text(
                       'Net Balance',
                       style: TextStyle(color: Colors.white70, fontSize: 12),
