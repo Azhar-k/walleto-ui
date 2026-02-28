@@ -100,7 +100,7 @@ class SummaryService {
       final payload = response.data;
       if (payload is num) return payload.toDouble();
       if (payload is Map) {
-        return (payload['balance'] as num?)?.toDouble() ?? 0.0;
+        return (payload['totalBalance'] as num?)?.toDouble() ?? 0.0;
       }
       return 0.0;
     } catch (e, st) {
@@ -117,7 +117,7 @@ class SummaryService {
       final payload = response.data;
       if (payload is num) return payload.toDouble();
       if (payload is Map) {
-        return (payload['balance'] as num?)?.toDouble() ?? 0.0;
+        return (payload['totalBalance'] as num?)?.toDouble() ?? 0.0;
       }
       return 0.0;
     } catch (e, st) {
