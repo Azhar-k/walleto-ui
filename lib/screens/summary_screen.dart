@@ -23,11 +23,11 @@ class SummaryScreen extends ConsumerWidget {
       body: RefreshIndicator(
         onRefresh: () async {
           // ignore: unused_result
-          ref.refresh(defaultAccountProvider);
+          await ref.refresh(defaultAccountProvider.future);
           // ignore: unused_result
-          ref.refresh(monthlySummaryProvider);
+          await ref.refresh(monthlySummaryProvider.future);
           // ignore: unused_result
-          ref.refresh(netBalanceProvider);
+          await ref.refresh(netBalanceProvider.future);
         },
         child: CustomScrollView(
           slivers: [
@@ -126,7 +126,9 @@ class SummaryScreen extends ConsumerWidget {
                         const SizedBox(height: 8),
                         ElevatedButton(
                           onPressed: () {
+                            // ignore: unused_result
                             ref.refresh(defaultAccountProvider);
+                            // ignore: unused_result
                             ref.refresh(monthlySummaryProvider);
                           },
                           child: const Text('Retry'),
