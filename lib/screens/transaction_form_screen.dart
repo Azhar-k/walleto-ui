@@ -124,7 +124,9 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
       final transaction = Transaction(
         id: widget.existingTransaction?.id,
         amount: double.parse(_amountController.text),
-        description: _descriptionController.text.trim(),
+        description: _descriptionController.text.trim().isEmpty
+            ? null
+            : _descriptionController.text.trim(),
         dateTime: dateTime,
         transactionType: _type,
         categoryId: _category!.id,
@@ -237,6 +239,11 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                 _category = null;
               }
 
+              if (_category == null && filteredCategories.isNotEmpty) {
+                // Pre-select the first available category as a default
+                _category = filteredCategories.first;
+              }
+
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Form(
@@ -284,11 +291,9 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                       TextFormField(
                         controller: _descriptionController,
                         decoration: const InputDecoration(
-                          labelText: 'Description *',
+                          labelText: 'Description (optional)',
                           prefixIcon: Icon(Icons.description),
                         ),
-                        validator: (v) =>
-                            v == null || v.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 16),
                       Row(
