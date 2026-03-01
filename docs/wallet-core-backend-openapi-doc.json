@@ -727,6 +727,12 @@
                     "required": true
                 },
                 "responses": {
+                    "404": {
+                        "description": "Not Found - Account or category not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
                     "200": {
                         "description": "Transfer completed successfully",
                         "content": {
@@ -737,17 +743,11 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized"
+                    "400": {
+                        "description": "Bad Request - Invalid input or same source/destination"
                     },
                     "403": {
                         "description": "Forbidden"
-                    },
-                    "404": {
-                        "description": "Not Found - Account or category not found"
-                    },
-                    "400": {
-                        "description": "Bad Request - Invalid input or same source/destination"
                     }
                 },
                 "security": [
@@ -1076,6 +1076,38 @@
                 }
             }
         },
+        "/api/audit-logs/search": {
+            "post": {
+                "tags": [
+                    "Audit Logs"
+                ],
+                "summary": "Search audit logs",
+                "description": "Searches for audit logs based on various criteria.",
+                "operationId": "search_1",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AuditLogSearchRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseListAuditLogDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/accounts": {
             "get": {
                 "tags": [
@@ -1244,15 +1276,6 @@
                     }
                 ],
                 "responses": {
-                    "401": {
-                        "description": "Unauthorized"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    },
-                    "404": {
-                        "description": "Not Found"
-                    },
                     "200": {
                         "description": "Account summary retrieved successfully",
                         "content": {
@@ -1262,6 +1285,15 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
                     }
                 },
                 "security": [
@@ -1312,12 +1344,6 @@
                     "401": {
                         "description": "Unauthorized"
                     },
-                    "403": {
-                        "description": "Forbidden"
-                    },
-                    "404": {
-                        "description": "Not Found"
-                    },
                     "200": {
                         "description": "Category income summary retrieved successfully",
                         "content": {
@@ -1327,6 +1353,12 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
                     }
                 },
                 "security": [
@@ -1377,12 +1409,6 @@
                     "401": {
                         "description": "Unauthorized"
                     },
-                    "403": {
-                        "description": "Forbidden"
-                    },
-                    "404": {
-                        "description": "Not Found"
-                    },
                     "200": {
                         "description": "Category expense summary retrieved successfully",
                         "content": {
@@ -1392,6 +1418,12 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
                     }
                 },
                 "security": [
@@ -1454,9 +1486,6 @@
                     }
                 ],
                 "responses": {
-                    "404": {
-                        "description": "Not Found - Account does not exist or access denied"
-                    },
                     "200": {
                         "description": "Account balance retrieved successfully",
                         "content": {
@@ -1472,6 +1501,9 @@
                     },
                     "401": {
                         "description": "Unauthorized - Invalid or missing token"
+                    },
+                    "404": {
+                        "description": "Not Found - Account does not exist or access denied"
                     }
                 },
                 "security": [
@@ -2232,59 +2264,37 @@
                     }
                 }
             },
-            "ApiResponseListRecurringPaymentDTO": {
+            "AuditLogSearchRequest": {
                 "type": "object",
-                "description": "Generic standard API response wrapper class",
                 "properties": {
-                    "success": {
-                        "type": "boolean",
-                        "description": "Indicates whether the request was successful or not",
-                        "example": true
-                    },
-                    "message": {
+                    "fromDate": {
                         "type": "string",
-                        "description": "A friendly response message detailing success status or failure context",
-                        "example": "Operation completed successfully"
+                        "format": "date"
                     },
-                    "data": {
-                        "type": "array",
-                        "description": "The core generic payload body matching the actual requested resource representation",
-                        "items": {
-                            "$ref": "#/components/schemas/RecurringPaymentDTO"
-                        }
-                    },
-                    "timestamp": {
+                    "toDate": {
                         "type": "string",
-                        "format": "date-time",
-                        "description": "Timestamp when the response was generated"
-                    }
-                }
-            },
-            "ApiResponseListCategoryDTO": {
-                "type": "object",
-                "description": "Generic standard API response wrapper class",
-                "properties": {
-                    "success": {
-                        "type": "boolean",
-                        "description": "Indicates whether the request was successful or not",
-                        "example": true
+                        "format": "date"
                     },
-                    "message": {
+                    "action": {
                         "type": "string",
-                        "description": "A friendly response message detailing success status or failure context",
-                        "example": "Operation completed successfully"
+                        "enum": [
+                            "CREATE",
+                            "UPDATE",
+                            "DELETE"
+                        ]
                     },
-                    "data": {
-                        "type": "array",
-                        "description": "The core generic payload body matching the actual requested resource representation",
-                        "items": {
-                            "$ref": "#/components/schemas/CategoryDTO"
-                        }
+                    "entityType": {
+                        "type": "string"
                     },
-                    "timestamp": {
-                        "type": "string",
-                        "format": "date-time",
-                        "description": "Timestamp when the response was generated"
+                    "entityId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "username": {
+                        "type": "string"
+                    },
+                    "query": {
+                        "type": "string"
                     }
                 }
             },
@@ -2387,6 +2397,62 @@
                         "type": "string",
                         "description": "HTTP request method that triggered the action",
                         "example": "POST"
+                    }
+                }
+            },
+            "ApiResponseListRecurringPaymentDTO": {
+                "type": "object",
+                "description": "Generic standard API response wrapper class",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates whether the request was successful or not",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "A friendly response message detailing success status or failure context",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "type": "array",
+                        "description": "The core generic payload body matching the actual requested resource representation",
+                        "items": {
+                            "$ref": "#/components/schemas/RecurringPaymentDTO"
+                        }
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the response was generated"
+                    }
+                }
+            },
+            "ApiResponseListCategoryDTO": {
+                "type": "object",
+                "description": "Generic standard API response wrapper class",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates whether the request was successful or not",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "A friendly response message detailing success status or failure context",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "type": "array",
+                        "description": "The core generic payload body matching the actual requested resource representation",
+                        "items": {
+                            "$ref": "#/components/schemas/CategoryDTO"
+                        }
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the response was generated"
                     }
                 }
             },
