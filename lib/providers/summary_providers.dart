@@ -62,6 +62,10 @@ final summaryFilterProvider =
       (ref) => SummaryFilterNotifier(),
     );
 
+// ── Selected account ─────────────────────────────────────────────────────────
+
+final selectedAccountProvider = StateProvider<Account?>((ref) => null);
+
 // ── Default account ──────────────────────────────────────────────────────────
 
 final defaultAccountProvider = FutureProvider<Account>((ref) async {
@@ -91,8 +95,11 @@ final monthlySummaryProvider = FutureProvider<MonthlySummaryData>((ref) async {
   final filter = ref.watch(summaryFilterProvider);
   final service = ref.watch(summaryServiceProvider);
 
-  final account = await ref.watch(defaultAccountProvider.future);
-  final accountId = account.id!;
+  // Use selected account, or fallback to default
+  Account? account = ref.watch(selectedAccountProvider);
+  account ??= await ref.watch(defaultAccountProvider.future);
+
+  final accountId = account?.id ?? 0;
 
   // Run all three calls in parallel
   final results = await Future.wait([

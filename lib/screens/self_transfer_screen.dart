@@ -101,7 +101,7 @@ class _SelfTransferScreenState extends ConsumerState<SelfTransferScreen> {
           return categoriesAsync.when(
             data: (categories) {
               final expenses = categories
-                  .where((c) => c.type == CategoryType.EXPENSE)
+                  .where((c) => c.type == CategoryType.expense)
                   .toList();
 
               return SingleChildScrollView(
@@ -162,8 +162,9 @@ class _SelfTransferScreenState extends ConsumerState<SelfTransferScreen> {
                         keyboardType: TextInputType.number,
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Required';
-                          if (double.tryParse(v) == null)
+                          if (double.tryParse(v) == null) {
                             return 'Must be a valid number';
+                          }
                           return null;
                         },
                       ),
@@ -188,8 +189,9 @@ class _SelfTransferScreenState extends ConsumerState<SelfTransferScreen> {
                                   firstDate: DateTime(2000),
                                   lastDate: DateTime(2100),
                                 );
-                                if (picked != null)
+                                if (picked != null) {
                                   setState(() => _transferDate = picked);
+                                }
                               },
                             ),
                           ),
@@ -208,8 +210,9 @@ class _SelfTransferScreenState extends ConsumerState<SelfTransferScreen> {
                                   context: context,
                                   initialTime: _transferTime,
                                 );
-                                if (picked != null)
+                                if (picked != null) {
                                   setState(() => _transferTime = picked);
+                                }
                               },
                             ),
                           ),

@@ -4,16 +4,16 @@ part 'models.g.dart';
 
 enum TransactionType {
   @JsonValue('CREDIT')
-  CREDIT,
+  credit,
   @JsonValue('DEBIT')
-  DEBIT,
+  debit,
 }
 
 enum CategoryType {
   @JsonValue('INCOME')
-  INCOME,
+  income,
   @JsonValue('EXPENSE')
-  EXPENSE,
+  expense,
 }
 
 @JsonSerializable()

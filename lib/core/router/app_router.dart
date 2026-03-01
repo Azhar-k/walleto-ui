@@ -83,7 +83,10 @@ final GoRouter appRouter = GoRouter(
         ),
         GoRoute(
           path: '/transactions',
-          builder: (context, state) => const TransactionsScreen(),
+          builder: (context, state) {
+            final initialFilters = state.extra as Map<String, dynamic>?;
+            return TransactionsScreen(initialFilters: initialFilters);
+          },
           routes: [
             GoRoute(
               path: 'new',

@@ -3,31 +3,77 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../providers/summary_providers.dart';
+import '../providers/core_providers.dart';
+import '../models/models.dart';
 import '../core/theme/app_theme.dart';
+import 'package:go_router/go_router.dart';
 
-class SummaryScreen extends ConsumerWidget {
+class SummaryScreen extends ConsumerStatefulWidget {
   const SummaryScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SummaryScreen> createState() => _SummaryScreenState();
+}
+
+class _SummaryScreenState extends ConsumerState<SummaryScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final filterState = ref.watch(summaryFilterProvider);
     final summaryAsync = ref.watch(monthlySummaryProvider);
-    final netBalanceAsync = ref.watch(netBalanceProvider);
     final defaultAccountAsync = ref.watch(defaultAccountProvider);
+    final selectedAccount = ref.watch(selectedAccountProvider);
+    final accountsAsync = ref.watch(accountsProvider);
 
     final monthName = DateFormat(
       'MMMM',
     ).format(DateTime(filterState.year, filterState.month));
 
+    final accounts = accountsAsync.valueOrNull ?? [];
+    Account? activeAccount = selectedAccount;
+    if (activeAccount == null) {
+      final defaultAccountOpt = defaultAccountAsync.valueOrNull;
+      if (defaultAccountOpt != null) {
+        activeAccount = accounts.firstWhere(
+          (a) => a.id == defaultAccountOpt.id,
+          orElse: () =>
+              accounts.isNotEmpty ? accounts.first : defaultAccountOpt,
+        );
+      } else if (accounts.isNotEmpty) {
+        activeAccount = accounts.first;
+      }
+    }
+    if (activeAccount != null &&
+        accounts.isNotEmpty &&
+        !accounts.any((a) => a.id == activeAccount!.id)) {
+      activeAccount = accounts.first;
+    }
+
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () async {
           // ignore: unused_result
-          ref.refresh(defaultAccountProvider);
+          await ref.refresh(defaultAccountProvider.future);
           // ignore: unused_result
-          ref.refresh(monthlySummaryProvider);
+          await ref.refresh(accountsProvider.future);
           // ignore: unused_result
-          ref.refresh(netBalanceProvider);
+          await ref.refresh(monthlySummaryProvider.future);
+          // ignore: unused_result
+          await ref.refresh(netBalanceProvider.future);
         },
         child: CustomScrollView(
           slivers: [
@@ -37,35 +83,97 @@ class SummaryScreen extends ConsumerWidget {
                 color: Theme.of(context).primaryColor,
                 child: Column(
                   children: [
-                    // Account name
-                    defaultAccountAsync.when(
-                      data: (account) => Text(
-                        account.name,
-                        style: const TextStyle(
+                    // Account Selector
+                    accountsAsync.when(
+                      data: (accounts) {
+                        if (accounts.isEmpty) {
+                          return const Text(
+                            'No accounts available',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          );
+                        }
+
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<Account>(
+                              value: activeAccount,
+                              dropdownColor: Theme.of(context).primaryColor,
+                              icon: const Icon(
+                                Icons.arrow_drop_down,
+                                color: Colors.white,
+                              ),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              items: accounts.map((account) {
+                                return DropdownMenuItem<Account>(
+                                  value: account,
+                                  child: Text(account.name),
+                                );
+                              }).toList(),
+                              onChanged: (Account? newValue) {
+                                if (newValue != null &&
+                                    newValue.id != activeAccount?.id) {
+                                  ref
+                                          .read(
+                                            selectedAccountProvider.notifier,
+                                          )
+                                          .state =
+                                      newValue;
+
+                                  // Refresh summary to reflect the new account
+                                  ref.invalidate(monthlySummaryProvider);
+                                }
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                      loading: () => const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
                           color: Colors.white70,
-                          fontSize: 14,
+                          strokeWidth: 2,
                         ),
                       ),
-                      loading: () => const SizedBox.shrink(),
                       error: (_, _) => const Text(
-                        'No default account',
+                        'Error loading accounts',
                         style: TextStyle(color: Colors.white70, fontSize: 14),
                       ),
                     ),
+                    const SizedBox(height: 16),
                     const Text(
-                      'Net Balance',
+                      'Monthly Balance',
                       style: TextStyle(color: Colors.white70, fontSize: 12),
                     ),
                     const SizedBox(height: 4),
-                    netBalanceAsync.when(
-                      data: (balance) => Text(
-                        '₹${balance.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                    summaryAsync.when(
+                      data: (summary) {
+                        final monthlyBalance =
+                            summary.totalIncome - summary.totalExpense;
+                        return Text(
+                          '₹${monthlyBalance.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      },
                       loading: () =>
                           const CircularProgressIndicator(color: Colors.white),
                       error: (_, _) => const Text(
@@ -112,7 +220,12 @@ class SummaryScreen extends ConsumerWidget {
             ),
             SliverToBoxAdapter(
               child: summaryAsync.when(
-                data: (summary) => _buildSummaryContent(context, summary),
+                data: (summary) => _buildSummaryContent(
+                  context,
+                  summary,
+                  filterState,
+                  activeAccount,
+                ),
                 loading: () => const Padding(
                   padding: EdgeInsets.all(32),
                   child: Center(child: CircularProgressIndicator()),
@@ -126,7 +239,9 @@ class SummaryScreen extends ConsumerWidget {
                         const SizedBox(height: 8),
                         ElevatedButton(
                           onPressed: () {
+                            // ignore: unused_result
                             ref.refresh(defaultAccountProvider);
+                            // ignore: unused_result
                             ref.refresh(monthlySummaryProvider);
                           },
                           child: const Text('Retry'),
@@ -146,112 +261,182 @@ class SummaryScreen extends ConsumerWidget {
   Widget _buildSummaryContent(
     BuildContext context,
     MonthlySummaryData summary,
+    SummaryFilterState filterState,
+    Account? selectedAccount,
   ) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
+    return AnimatedBuilder(
+      animation: _tabController,
+      builder: (context, _) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: _buildInfoCard(
-                  context,
-                  'Income',
-                  summary.totalIncome,
-                  AppTheme.creditColor,
-                  Icons.arrow_downward,
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildInfoCard(
+                      context: context,
+                      title: 'Expense',
+                      amount: summary.totalExpense,
+                      color: AppTheme.debitColor,
+                      icon: Icons.arrow_upward,
+                      isSelected: _tabController.index == 0,
+                      onTap: () {
+                        if (_tabController.index != 0) {
+                          _tabController.animateTo(0);
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildInfoCard(
+                      context: context,
+                      title: 'Income',
+                      amount: summary.totalIncome,
+                      color: AppTheme.creditColor,
+                      icon: Icons.arrow_downward,
+                      isSelected: _tabController.index == 1,
+                      onTap: () {
+                        if (_tabController.index != 1) {
+                          _tabController.animateTo(1);
+                        }
+                      },
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildInfoCard(
-                  context,
-                  'Expense',
-                  summary.totalExpense,
-                  AppTheme.debitColor,
-                  Icons.arrow_upward,
-                ),
+              const SizedBox(height: 32),
+              // Provide fixed height or Expanded, since it's inside a SingleScrollView (CustomScrollView -> SliverToBoxAdapter),
+              // we'll use a fixed height container that is large enough, or just render both lists conditionally.
+              // Since it's inside a column, we can do an IndexedStack or AnimatedSwitcher for dynamic height, or just standard conditionals:
+              AnimatedBuilder(
+                animation: _tabController,
+                builder: (context, _) {
+                  final isExpenseTab = _tabController.index == 0;
+                  final activeBreakdown = isExpenseTab
+                      ? summary.expenseBreakdown
+                      : summary.incomeBreakdown;
+                  final activeTotal = isExpenseTab
+                      ? summary.totalExpense
+                      : summary.totalIncome;
+                  final activeColor = isExpenseTab
+                      ? AppTheme.debitColor
+                      : AppTheme.creditColor;
+
+                  return Column(
+                    children: [
+                      if (activeBreakdown.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.all(32.0),
+                          child: Center(
+                            child: Text(
+                              'No transactions recorded for this period.',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        )
+                      else ...[
+                        SizedBox(
+                          height: 200,
+                          child: _buildPieChart(activeBreakdown, activeColor),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildCategoryList(
+                          context,
+                          activeTotal,
+                          activeColor,
+                          activeBreakdown,
+                          selectedAccount?.id ?? 0,
+                          selectedAccount?.name ?? '',
+                          DateTime(filterState.year, filterState.month, 1),
+                          DateTime(
+                            filterState.year,
+                            filterState.month + 1,
+                            0,
+                            23,
+                            59,
+                            59,
+                          ),
+                        ),
+                      ],
+                    ],
+                  );
+                },
               ),
             ],
           ),
-          const SizedBox(height: 32),
-          const Text(
-            'Expense Breakdown',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        );
+      },
+    );
+  }
+
+  Widget _buildInfoCard({
+    required BuildContext context,
+    required String title,
+    required double amount,
+    required Color color,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: isSelected ? 0.2 : 0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: color.withValues(alpha: isSelected ? 0.6 : 0.2),
+            width: isSelected ? 2.0 : 1.0,
           ),
-          const SizedBox(height: 16),
-          if (summary.expenseBreakdown.isEmpty)
-            const Center(
-              child: Text(
-                'No expenses recorded for this month.',
-                style: TextStyle(color: Colors.grey),
-              ),
-            )
-          else ...[
-            SizedBox(
-              height: 200,
-              child: _buildPieChart(summary.expenseBreakdown),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: color, size: 16),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: TextStyle(color: color, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            _buildCategoryList(summary.expenseBreakdown, summary.totalExpense),
+            const SizedBox(height: 8),
+            Text(
+              '₹${amount.toStringAsFixed(2)}',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
           ],
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildInfoCard(
-    BuildContext context,
-    String title,
-    double amount,
-    Color color,
-    IconData icon,
+  Widget _buildPieChart(
+    List<Map<String, dynamic>> breakdowns,
+    Color baseColor,
   ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: color, size: 16),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: TextStyle(color: color, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '₹${amount.toStringAsFixed(2)}',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPieChart(List<Map<String, dynamic>> breakdowns) {
+    // Generate variations of the base color if we want, or just stick to a palette.
+    // Let's use a dynamic palette that tints the base color.
     final colors = [
-      Colors.red,
-      Colors.blue,
-      Colors.green,
-      Colors.orange,
-      Colors.purple,
-      Colors.teal,
-      Colors.pink,
-      Colors.amber,
+      baseColor,
+      baseColor.withValues(alpha: 0.8),
+      baseColor.withValues(alpha: 0.6),
+      baseColor.withValues(alpha: 0.4),
+      baseColor.withValues(alpha: 0.9),
+      baseColor.withValues(alpha: 0.7),
+      baseColor.withValues(alpha: 0.5),
+      baseColor.withValues(alpha: 0.3),
     ];
     int colorIdx = 0;
     final sections = breakdowns.map((b) {
@@ -277,18 +462,24 @@ class SummaryScreen extends ConsumerWidget {
   }
 
   Widget _buildCategoryList(
-    List<Map<String, dynamic>> breakdowns,
+    BuildContext context,
     double total,
+    Color baseColor,
+    List<Map<String, dynamic>> breakdowns,
+    int accountId,
+    String accountName,
+    DateTime startDate,
+    DateTime endDate,
   ) {
     final colors = [
-      Colors.red,
-      Colors.blue,
-      Colors.green,
-      Colors.orange,
-      Colors.purple,
-      Colors.teal,
-      Colors.pink,
-      Colors.amber,
+      baseColor,
+      baseColor.withValues(alpha: 0.8),
+      baseColor.withValues(alpha: 0.6),
+      baseColor.withValues(alpha: 0.4),
+      baseColor.withValues(alpha: 0.9),
+      baseColor.withValues(alpha: 0.7),
+      baseColor.withValues(alpha: 0.5),
+      baseColor.withValues(alpha: 0.3),
     ];
     return ListView.builder(
       shrinkWrap: true,
@@ -303,6 +494,29 @@ class SummaryScreen extends ConsumerWidget {
         final pct = total > 0 ? (amount / total) * 100 : 0;
 
         return ListTile(
+          onTap: () async {
+            final categories = await ref.read(categoriesProvider.future);
+            int? categoryId;
+            try {
+              final cat = categories.firstWhere(
+                (c) => c.name.toLowerCase() == categoryName.toLowerCase(),
+              );
+              categoryId = cat.id;
+            } catch (_) {}
+
+            if (context.mounted) {
+              context.go(
+                '/transactions',
+                extra: {
+                  'accountId': accountId,
+                  'categoryId': categoryId,
+                  'fromDate': startDate.toIso8601String().split('T')[0],
+                  'toDate': endDate.toIso8601String().split('T')[0],
+                  'excludeFromSummary': false,
+                },
+              );
+            }
+          },
           leading: Icon(Icons.circle, color: c, size: 16),
           title: Text(categoryName),
           subtitle: Text('$count transactions'),

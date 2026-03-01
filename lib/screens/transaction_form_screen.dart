@@ -21,7 +21,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
 
   Account? _account;
   Category? _category;
-  TransactionType _type = TransactionType.DEBIT; // Default Expense mapping
+  TransactionType _type = TransactionType.debit; // Default Expense mapping
 
   late TextEditingController _amountController;
   late TextEditingController _descriptionController;
@@ -124,7 +124,9 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
       final transaction = Transaction(
         id: widget.existingTransaction?.id,
         amount: double.parse(_amountController.text),
-        description: _descriptionController.text.trim(),
+        description: _descriptionController.text.trim().isEmpty
+            ? null
+            : _descriptionController.text.trim(),
         dateTime: dateTime,
         transactionType: _type,
         categoryId: _category!.id,
@@ -225,9 +227,9 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                   .where(
                     (c) =>
                         c.type ==
-                        (_type == TransactionType.CREDIT
-                            ? CategoryType.INCOME
-                            : CategoryType.EXPENSE),
+                        (_type == TransactionType.credit
+                            ? CategoryType.income
+                            : CategoryType.expense),
                   )
                   .toList();
 
@@ -235,6 +237,11 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
               if (_category != null &&
                   !filteredCategories.any((c) => c.id == _category!.id)) {
                 _category = null;
+              }
+
+              if (_category == null && filteredCategories.isNotEmpty) {
+                // Pre-select the first available category as a default
+                _category = filteredCategories.first;
               }
 
               return SingleChildScrollView(
@@ -247,11 +254,11 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                       SegmentedButton<TransactionType>(
                         segments: const [
                           ButtonSegment(
-                            value: TransactionType.DEBIT,
+                            value: TransactionType.debit,
                             label: Text('Debit/Expense'),
                           ),
                           ButtonSegment(
-                            value: TransactionType.CREDIT,
+                            value: TransactionType.credit,
                             label: Text('Credit/Income'),
                           ),
                         ],
@@ -284,11 +291,9 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                       TextFormField(
                         controller: _descriptionController,
                         decoration: const InputDecoration(
-                          labelText: 'Description *',
+                          labelText: 'Description (optional)',
                           prefixIcon: Icon(Icons.description),
                         ),
-                        validator: (v) =>
-                            v == null || v.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 16),
                       Row(

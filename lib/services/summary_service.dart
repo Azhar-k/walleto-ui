@@ -56,8 +56,9 @@ class SummaryService {
       }
       return [];
     } catch (e, st) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint('[SummaryService.getCategoryExpenseSummary] $e\n$st');
+      }
       rethrow;
     }
   }
@@ -84,8 +85,9 @@ class SummaryService {
       }
       return [];
     } catch (e, st) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint('[SummaryService.getCategoryIncomeSummary] $e\n$st');
+      }
       rethrow;
     }
   }
@@ -97,8 +99,9 @@ class SummaryService {
       final response = await _dio.get<dynamic>('/api/balance');
       final payload = response.data;
       if (payload is num) return payload.toDouble();
-      if (payload is Map)
-        return (payload['balance'] as num?)?.toDouble() ?? 0.0;
+      if (payload is Map) {
+        return (payload['totalBalance'] as num?)?.toDouble() ?? 0.0;
+      }
       return 0.0;
     } catch (e, st) {
       if (kDebugMode) debugPrint('[SummaryService.getNetBalance] $e\n$st');
@@ -113,8 +116,9 @@ class SummaryService {
       final response = await _dio.get<dynamic>('/api/balance/$accountId');
       final payload = response.data;
       if (payload is num) return payload.toDouble();
-      if (payload is Map)
-        return (payload['balance'] as num?)?.toDouble() ?? 0.0;
+      if (payload is Map) {
+        return (payload['totalBalance'] as num?)?.toDouble() ?? 0.0;
+      }
       return 0.0;
     } catch (e, st) {
       if (kDebugMode) debugPrint('[SummaryService.getAccountBalance] $e\n$st');

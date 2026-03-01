@@ -118,8 +118,9 @@ class _RecurringPaymentFormScreenState
                       keyboardType: TextInputType.number,
                       validator: (v) {
                         if (v == null || v.isEmpty) return 'Required';
-                        if (double.tryParse(v) == null)
+                        if (double.tryParse(v) == null) {
                           return 'Must be a valid number';
+                        }
                         return null;
                       },
                     ),
@@ -134,8 +135,9 @@ class _RecurringPaymentFormScreenState
                       validator: (v) {
                         if (v == null || v.isEmpty) return 'Required';
                         final val = int.tryParse(v);
-                        if (val == null || val < 1 || val > 31)
+                        if (val == null || val < 1 || val > 31) {
                           return 'Must be a valid day (1-31)';
+                        }
                         return null;
                       },
                     ),
