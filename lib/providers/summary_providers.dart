@@ -97,9 +97,7 @@ final monthlySummaryProvider = FutureProvider<MonthlySummaryData>((ref) async {
 
   // Use selected account, or fallback to default
   Account? account = ref.watch(selectedAccountProvider);
-  if (account == null) {
-    account = await ref.watch(defaultAccountProvider.future);
-  }
+  account ??= await ref.watch(defaultAccountProvider.future);
 
   final accountId = account?.id ?? 0;
 

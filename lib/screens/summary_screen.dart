@@ -509,7 +509,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen>
                 '/transactions',
                 extra: {
                   'accountId': accountId,
-                  if (categoryId != null) 'categoryId': categoryId,
+                  'categoryId': categoryId,
                   'fromDate': startDate.toIso8601String().split('T')[0],
                   'toDate': endDate.toIso8601String().split('T')[0],
                   'excludeFromSummary': false,
