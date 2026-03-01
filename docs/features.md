@@ -99,7 +99,7 @@ I will give the screen details one by one
 ## Screen: Transactions
 
 ### Purpose
-Comprehensive list of all transactions with advanced filtering capabilities.
+Comprehensive list of all transactions with advanced filtering capabilities. Supports receiving prepopulated filters when navigated to from other screens (e.g., category drill-down from Summary).
 
 ### Components
 
@@ -253,7 +253,7 @@ Main dashboard showing financial overview with monthly breakdowns and category-w
 #### Financial Summary
 - **Total Expense**: total expenses for selected period (₹X.XX format)
 - **Total Income**: total income for selected period (₹X.XX format)
-- **Total Balance**: Calculated balance (Income - Expense)
+- **Monthly Balance**: Calculated balance for the month (Income - Expense)
   - Color coding: Green for positive, Red for negative
 
 #### Category Breakdown Section
@@ -265,7 +265,7 @@ Main dashboard showing financial overview with monthly breakdowns and category-w
   - Category name
   - Total amount for that category
   - use a suitable diagram like pie diagram
-- **Category Click Action**: Show all transactions for that category in the selected period
+- **Category Click Action**: Clicking a category navigates to the **Transactions** screen, automatically filtering the list by the selected category, account, and date period.
 
 ### Interactions
 - Month navigation updates all financial data
@@ -276,7 +276,7 @@ Main dashboard showing financial overview with monthly breakdowns and category-w
 - Do not count the transactions that are excluded from summary
 
 ### Data Displayed
-- Monthly totals (expense, income, balance)
+- Monthly totals (expense, income, monthly balance)
 - Category-wise spending/income breakdown
 - Filtered by selected account and month/year
 
