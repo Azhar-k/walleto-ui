@@ -6,12 +6,12 @@ import 'api_response_interceptor.dart';
 class ApiClient {
   static String get coreBaseUrl {
     // if (kIsWeb) return 'http://localhost:8080';
-    return 'https://9aad-2401-4900-8fdd-19a5-23cd-429a-2f67-4f06.ngrok-free.app/api/core'; // Loopback for Android emulator
+    return 'https://04cd-2401-4900-8fdf-3702-d4d7-845b-5bb5-476.ngrok-free.app/api/core'; // Loopback for Android emulator
   }
 
   static String get userBaseUrl {
     // if (kIsWeb) return 'http://localhost:8073';
-    return 'https://9aad-2401-4900-8fdd-19a5-23cd-429a-2f67-4f06.ngrok-free.app/api/userservice';
+    return 'https://04cd-2401-4900-8fdf-3702-d4d7-845b-5bb5-476.ngrok-free.app/api/userservice';
   }
 
   static Dio getCoreClient() {

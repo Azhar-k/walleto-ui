@@ -230,3 +230,28 @@ class AuditLog {
       _$AuditLogFromJson(json);
   Map<String, dynamic> toJson() => _$AuditLogToJson(this);
 }
+
+@JsonSerializable()
+class AuditLogSearchRequest {
+  final String? fromDate;
+  final String? toDate;
+  final String? action;
+  final String? entityType;
+  final int? entityId;
+  final String? username;
+  final String? query;
+
+  AuditLogSearchRequest({
+    this.fromDate,
+    this.toDate,
+    this.action,
+    this.entityType,
+    this.entityId,
+    this.username,
+    this.query,
+  });
+
+  factory AuditLogSearchRequest.fromJson(Map<String, dynamic> json) =>
+      _$AuditLogSearchRequestFromJson(json);
+  Map<String, dynamic> toJson() => _$AuditLogSearchRequestToJson(this);
+}
