@@ -15,7 +15,12 @@ final regexesProvider = FutureProvider<List<RegexPattern>>((ref) async {
   return await service.getRegexPatterns();
 });
 
+final auditLogSearchFilterProvider = StateProvider<AuditLogSearchRequest>(
+  (ref) => AuditLogSearchRequest(),
+);
+
 final auditLogsProvider = FutureProvider<List<AuditLog>>((ref) async {
   final service = ref.watch(auditServiceProvider);
-  return await service.getAuditLogs();
+  final filter = ref.watch(auditLogSearchFilterProvider);
+  return await service.searchAuditLogs(filter);
 });

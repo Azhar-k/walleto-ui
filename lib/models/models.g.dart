@@ -213,3 +213,27 @@ Map<String, dynamic> _$AuditLogToJson(AuditLog instance) => <String, dynamic>{
   'requestPath': instance.requestPath,
   'requestMethod': instance.requestMethod,
 };
+
+AuditLogSearchRequest _$AuditLogSearchRequestFromJson(
+  Map<String, dynamic> json,
+) => AuditLogSearchRequest(
+  fromDate: json['fromDate'] as String?,
+  toDate: json['toDate'] as String?,
+  action: json['action'] as String?,
+  entityType: json['entityType'] as String?,
+  entityId: (json['entityId'] as num?)?.toInt(),
+  username: json['username'] as String?,
+  query: json['query'] as String?,
+);
+
+Map<String, dynamic> _$AuditLogSearchRequestToJson(
+  AuditLogSearchRequest instance,
+) => <String, dynamic>{
+  'fromDate': instance.fromDate,
+  'toDate': instance.toDate,
+  'action': instance.action,
+  'entityType': instance.entityType,
+  'entityId': instance.entityId,
+  'username': instance.username,
+  'query': instance.query,
+};

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_sms_inbox/flutter_sms_inbox.dart';
 import '../providers/sms_providers.dart';
 import '../providers/core_providers.dart';
 import '../providers/summary_providers.dart';
@@ -25,36 +27,52 @@ class _ScanSmsScreenState extends ConsumerState<ScanSmsScreen> {
     });
 
     try {
-      // 1. Request SMS Permissions (Requires permission_handler or similar package)
-      // Since this is a UI-only phase, we simulate reading SMS from the device
+      var permission = await Permission.sms.status;
+      if (permission.isDenied) {
+        permission = await Permission.sms.request();
+      }
 
-      // Simulate delay for reading device SMS
-      await Future.delayed(const Duration(seconds: 1));
+      if (!permission.isGranted) {
+        setState(() {
+          _resultMessage = 'SMS permission is required to scan your inbox.';
+          _isProcessing = false;
+        });
+        return;
+      }
 
-      // 2. Mock SMS Data that would normally be read from Native Side
-      final mockMessages = [
-        {
-          "sender": "VM-HDFCBK",
-          "body":
-              "Rs.500.00 debited from a/c **1234 on 15/02/25 to Swiggy. Ref No: 123.",
-          "timestamp": _startDate
-              .add(const Duration(hours: 1))
-              .millisecondsSinceEpoch,
-        },
-        {
-          "sender": "AD-ICICIB",
-          "body":
-              "Acct **5678 credited with INR 2000.00 on 14-Feb-25. Info: Salary.",
-          "timestamp": _startDate
-              .add(const Duration(hours: 2))
-              .millisecondsSinceEpoch,
-        },
-      ];
+      final SmsQuery query = SmsQuery();
+      final messages = await query.querySms(kinds: [SmsQueryKind.inbox]);
 
-      // 3. Send to Backend - wrapped in BulkSmsDTO shape
+      // Filter messages by date range manually as the plugin doesn't support date bounds inherently
+      final filteredMessages = messages.where((msg) {
+        if (msg.date == null) return false;
+        final date = msg.date!;
+        return date.isAfter(_startDate) &&
+            date.isBefore(_endDate.add(const Duration(days: 1)));
+      }).toList();
+
+      if (filteredMessages.isEmpty) {
+        setState(() {
+          _resultMessage = 'No SMS messages found in the selected date range.';
+          _isProcessing = false;
+        });
+        return;
+      }
+
+      final mappedMessages = filteredMessages
+          .map(
+            (msg) => {
+              "sender": msg.sender,
+              "body": msg.body,
+              "timestamp": msg.date?.millisecondsSinceEpoch,
+            },
+          )
+          .toList();
+
+      // Send to Backend - wrapped in BulkSmsDTO shape
       final service = ref.read(smsServiceProvider);
       final result =
-          await service.processBatchSms({'messages': mockMessages})
+          await service.processBatchSms({'messages': mappedMessages})
               as Map<String, dynamic>? ??
           {};
 

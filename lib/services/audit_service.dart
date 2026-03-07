@@ -10,4 +10,7 @@ abstract class AuditService {
 
   @GET('/api/audit-logs')
   Future<List<AuditLog>> getAuditLogs();
+
+  @POST('/api/audit-logs/search')
+  Future<List<AuditLog>> searchAuditLogs(@Body() AuditLogSearchRequest request);
 }
