@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../core/theme/app_theme.dart';
 
 class MainNavigationShell extends StatefulWidget {
   final Widget child;
@@ -51,7 +52,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           padding: EdgeInsets.zero,
           children: [
             const DrawerHeader(
-              decoration: BoxDecoration(color: Color(0xFF6200EE)),
+              decoration: BoxDecoration(color: AppTheme.primaryColor),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
