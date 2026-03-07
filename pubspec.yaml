@@ -44,6 +44,9 @@ dependencies:
   json_annotation: ^4.11.0
   retrofit: ^4.9.2
   state_notifier: ^1.0.0
+  permission_handler: ^12.0.1
+  flutter_sms_inbox: ^1.0.4
+  telephony: ^0.2.0
 
 dev_dependencies:
   flutter_test:
