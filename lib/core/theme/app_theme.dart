@@ -7,6 +7,13 @@ class AppTheme {
   static const Color creditColor = Colors.green;
   static const Color backgroundColor = Color(0xFFF5F5F5);
 
+  // Summary Screen Colors
+  static const Color summaryBackgroundColor = Color(
+    0xFFEEEEEE,
+  ); // Colors.grey[200]
+  static const Color summaryTextColor = Colors.black87;
+  static const Color summaryLabelColor = Colors.black54;
+
   static ThemeData get lightTheme {
     return ThemeData(
       colorScheme: ColorScheme.fromSeed(
