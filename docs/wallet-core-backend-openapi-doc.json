@@ -60,6 +60,10 @@
         {
             "name": "Transactions",
             "description": "API for managing financial transactions"
+        },
+        {
+            "name": "Transaction Attachments",
+            "description": "API for managing transaction file attachments"
         }
     ],
     "paths": {
@@ -730,8 +734,14 @@
                     "404": {
                         "description": "Not Found - Account or category not found"
                     },
+                    "400": {
+                        "description": "Bad Request - Invalid input or same source/destination"
+                    },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
                     },
                     "200": {
                         "description": "Transfer completed successfully",
@@ -742,12 +752,6 @@
                                 }
                             }
                         }
-                    },
-                    "400": {
-                        "description": "Bad Request - Invalid input or same source/destination"
-                    },
-                    "403": {
-                        "description": "Forbidden"
                     }
                 },
                 "security": [
@@ -782,6 +786,121 @@
                             "*/*": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ApiResponseTransactionDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/transactions/{transactionId}/attachments": {
+            "get": {
+                "tags": [
+                    "Transaction Attachments"
+                ],
+                "summary": "Get attachments",
+                "description": "Retrieves all file attachments linked to a specific transaction.",
+                "operationId": "getAttachments",
+                "parameters": [
+                    {
+                        "name": "transactionId",
+                        "in": "path",
+                        "description": "ID of the transaction",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Attachments retrieved successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseListTransactionAttachmentDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Transaction Attachments"
+                ],
+                "summary": "Upload attachment",
+                "description": "Uploads a file (e.g., receipt, invoice) and links it to the specified transaction.",
+                "operationId": "uploadAttachment",
+                "parameters": [
+                    {
+                        "name": "transactionId",
+                        "in": "path",
+                        "description": "ID of the transaction",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "description": "File to upload"
+                                    }
+                                },
+                                "required": [
+                                    "file"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "404": {
+                        "description": "Transaction not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseTransactionAttachmentDTO"
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "Attachment uploaded successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseTransactionAttachmentDTO"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Access denied or transaction belongs to another tenant",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseTransactionAttachmentDTO"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid file or file size exceeded limit",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseTransactionAttachmentDTO"
                                 }
                             }
                         }
@@ -1238,6 +1357,73 @@
                 }
             }
         },
+        "/api/transactions/{transactionId}/attachments/{attachmentId}/download": {
+            "get": {
+                "tags": [
+                    "Transaction Attachments"
+                ],
+                "summary": "Download attachment",
+                "description": "Downloads the binary content of the specified attachment file.",
+                "operationId": "downloadAttachment",
+                "parameters": [
+                    {
+                        "name": "transactionId",
+                        "in": "path",
+                        "description": "ID of the transaction",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "attachmentId",
+                        "in": "path",
+                        "description": "ID of the attachment",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "404": {
+                        "description": "Attachment or file not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "File downloaded successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Access denied or attachment belongs to another tenant",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/summary/{accountId}": {
             "get": {
                 "tags": [
@@ -1276,6 +1462,15 @@
                     }
                 ],
                 "responses": {
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
                     "200": {
                         "description": "Account summary retrieved successfully",
                         "content": {
@@ -1285,15 +1480,6 @@
                                 }
                             }
                         }
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    },
-                    "404": {
-                        "description": "Not Found"
                     }
                 },
                 "security": [
@@ -1341,9 +1527,6 @@
                     }
                 ],
                 "responses": {
-                    "401": {
-                        "description": "Unauthorized"
-                    },
                     "200": {
                         "description": "Category income summary retrieved successfully",
                         "content": {
@@ -1353,6 +1536,9 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     },
                     "403": {
                         "description": "Forbidden"
@@ -1409,6 +1595,12 @@
                     "401": {
                         "description": "Unauthorized"
                     },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
                     "200": {
                         "description": "Category expense summary retrieved successfully",
                         "content": {
@@ -1418,12 +1610,6 @@
                                 }
                             }
                         }
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    },
-                    "404": {
-                        "description": "Not Found"
                     }
                 },
                 "security": [
@@ -1442,6 +1628,12 @@
                 "description": "Retrieves the net balance across all accounts for the current user",
                 "operationId": "getNetBalance",
                 "responses": {
+                    "403": {
+                        "description": "Forbidden - Insufficient permissions"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Invalid or missing token"
+                    },
                     "200": {
                         "description": "Net balance retrieved successfully",
                         "content": {
@@ -1451,12 +1643,6 @@
                                 }
                             }
                         }
-                    },
-                    "403": {
-                        "description": "Forbidden - Insufficient permissions"
-                    },
-                    "401": {
-                        "description": "Unauthorized - Invalid or missing token"
                     }
                 },
                 "security": [
@@ -1486,6 +1672,15 @@
                     }
                 ],
                 "responses": {
+                    "403": {
+                        "description": "Forbidden - Insufficient permissions"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Invalid or missing token"
+                    },
+                    "404": {
+                        "description": "Not Found - Account does not exist or access denied"
+                    },
                     "200": {
                         "description": "Account balance retrieved successfully",
                         "content": {
@@ -1495,15 +1690,6 @@
                                 }
                             }
                         }
-                    },
-                    "403": {
-                        "description": "Forbidden - Insufficient permissions"
-                    },
-                    "401": {
-                        "description": "Unauthorized - Invalid or missing token"
-                    },
-                    "404": {
-                        "description": "Not Found - Account does not exist or access denied"
                     }
                 },
                 "security": [
@@ -1556,10 +1742,111 @@
                     }
                 }
             }
+        },
+        "/api/transactions/{transactionId}/attachments/{attachmentId}": {
+            "delete": {
+                "tags": [
+                    "Transaction Attachments"
+                ],
+                "summary": "Delete attachment",
+                "description": "Deletes an attachment metadata from the database and physically removes the file from storage.",
+                "operationId": "deleteAttachment",
+                "parameters": [
+                    {
+                        "name": "transactionId",
+                        "in": "path",
+                        "description": "ID of the transaction",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "attachmentId",
+                        "in": "path",
+                        "description": "ID of the attachment",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "403": {
+                        "description": "Access denied or attachment belongs to another tenant",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Attachment deleted successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Attachment not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
         "schemas": {
+            "TransactionAttachmentDTO": {
+                "type": "object",
+                "description": "Data Transfer Object for Transaction Attachment details",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Unique identifier of the attachment",
+                        "readOnly": true
+                    },
+                    "fileName": {
+                        "type": "string",
+                        "description": "Original file name",
+                        "example": "receipt.pdf",
+                        "readOnly": true
+                    },
+                    "fileType": {
+                        "type": "string",
+                        "description": "MIME type of the file",
+                        "example": "application/pdf",
+                        "readOnly": true
+                    },
+                    "fileSize": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Size of the file in bytes",
+                        "example": 102400,
+                        "readOnly": true
+                    },
+                    "downloadUrl": {
+                        "type": "string",
+                        "description": "URL to download the file",
+                        "example": "/api/transactions/1/attachments/2/download",
+                        "readOnly": true
+                    }
+                }
+            },
             "TransactionDTO": {
                 "type": "object",
                 "description": "Data Transfer Object for Transaction details",
@@ -1649,6 +1936,14 @@
                         "format": "int64",
                         "description": "Version for optimistic locking",
                         "example": 0
+                    },
+                    "attachments": {
+                        "type": "array",
+                        "description": "List of attachments linked to this transaction",
+                        "items": {
+                            "$ref": "#/components/schemas/TransactionAttachmentDTO"
+                        },
+                        "readOnly": true
                     },
                     "excludeFromSummary": {
                         "type": "boolean"
@@ -2078,6 +2373,31 @@
                     }
                 }
             },
+            "ApiResponseTransactionAttachmentDTO": {
+                "type": "object",
+                "description": "Generic standard API response wrapper class",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates whether the request was successful or not",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "A friendly response message detailing success status or failure context",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/TransactionAttachmentDTO",
+                        "description": "The core generic payload body matching the actual requested resource representation"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the response was generated"
+                    }
+                }
+            },
             "TransactionSearchRequest": {
                 "type": "object",
                 "description": "Criteria for searching transactions",
@@ -2397,6 +2717,34 @@
                         "type": "string",
                         "description": "HTTP request method that triggered the action",
                         "example": "POST"
+                    }
+                }
+            },
+            "ApiResponseListTransactionAttachmentDTO": {
+                "type": "object",
+                "description": "Generic standard API response wrapper class",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates whether the request was successful or not",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "A friendly response message detailing success status or failure context",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "type": "array",
+                        "description": "The core generic payload body matching the actual requested resource representation",
+                        "items": {
+                            "$ref": "#/components/schemas/TransactionAttachmentDTO"
+                        }
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the response was generated"
                     }
                 }
             },
