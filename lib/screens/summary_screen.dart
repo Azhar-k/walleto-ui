@@ -80,7 +80,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen>
             SliverToBoxAdapter(
               child: Container(
                 padding: const EdgeInsets.all(16),
-                color: Theme.of(context).primaryColor,
+                color: AppTheme.summaryBackgroundColor,
                 child: Column(
                   children: [
                     // Account Selector
@@ -108,13 +108,13 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen>
                           child: DropdownButtonHideUnderline(
                             child: DropdownButton<Account>(
                               value: activeAccount,
-                              dropdownColor: Theme.of(context).primaryColor,
+                              dropdownColor: AppTheme.summaryBackgroundColor,
                               icon: const Icon(
                                 Icons.arrow_drop_down,
-                                color: Colors.white,
+                                color: AppTheme.summaryTextColor,
                               ),
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: AppTheme.summaryTextColor,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -158,27 +158,42 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen>
                     const SizedBox(height: 16),
                     const Text(
                       'Monthly Balance',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                      style: TextStyle(
+                        color: AppTheme.summaryLabelColor,
+                        fontSize: 12,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     summaryAsync.when(
                       data: (summary) {
                         final monthlyBalance =
                             summary.totalIncome - summary.totalExpense;
+                        final isPositive = monthlyBalance >= 0;
+                        final balanceColor = isPositive
+                            ? AppTheme.creditColor
+                            : AppTheme.debitColor;
+
+                        // To show minus before the rupee symbol:
+                        final absTemp = monthlyBalance.abs();
+                        final displayStr = isPositive
+                            ? '₹${absTemp.toStringAsFixed(2)}'
+                            : '-₹${absTemp.toStringAsFixed(2)}';
+
                         return Text(
-                          '₹${monthlyBalance.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            color: Colors.white,
+                          displayStr,
+                          style: TextStyle(
+                            color: balanceColor,
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
                           ),
                         );
                       },
-                      loading: () =>
-                          const CircularProgressIndicator(color: Colors.white),
+                      loading: () => const CircularProgressIndicator(
+                        color: Colors.black87,
+                      ),
                       error: (_, _) => const Text(
                         'Error',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: Colors.black87),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -189,7 +204,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen>
                         IconButton(
                           icon: const Icon(
                             Icons.chevron_left,
-                            color: Colors.white,
+                            color: AppTheme.summaryTextColor,
                           ),
                           onPressed: () => ref
                               .read(summaryFilterProvider.notifier)
@@ -198,7 +213,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen>
                         Text(
                           '$monthName ${filterState.year}',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppTheme.summaryTextColor,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -206,7 +221,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen>
                         IconButton(
                           icon: const Icon(
                             Icons.chevron_right,
-                            color: Colors.white,
+                            color: AppTheme.summaryTextColor,
                           ),
                           onPressed: () => ref
                               .read(summaryFilterProvider.notifier)

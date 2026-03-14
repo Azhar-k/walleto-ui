@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/auth_provider.dart';
 import '../services/auth_service.dart';
+import '../core/theme/app_theme.dart';
 import 'package:dio/dio.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -74,7 +75,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const Icon(
                       Icons.account_balance_wallet,
                       size: 80,
-                      color: Color(0xFF6200EE),
+                      color: AppTheme.primaryColor,
                     ),
                     const SizedBox(height: 32),
                     Text(

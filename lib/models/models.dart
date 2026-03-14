@@ -108,6 +108,7 @@ class Transaction {
   final int? recurringPaymentId;
   final bool? excludeFromSummary;
   final int? version;
+  final List<TransactionAttachment>? attachments;
 
   Transaction({
     this.id,
@@ -126,6 +127,7 @@ class Transaction {
     this.recurringPaymentId,
     this.excludeFromSummary,
     this.version,
+    this.attachments,
   });
 
   factory Transaction.fromJson(Map<String, dynamic> json) =>
@@ -254,4 +256,25 @@ class AuditLogSearchRequest {
   factory AuditLogSearchRequest.fromJson(Map<String, dynamic> json) =>
       _$AuditLogSearchRequestFromJson(json);
   Map<String, dynamic> toJson() => _$AuditLogSearchRequestToJson(this);
+}
+
+@JsonSerializable()
+class TransactionAttachment {
+  final int? id;
+  final String? fileName;
+  final String? fileType;
+  final int? fileSize;
+  final String? downloadUrl;
+
+  TransactionAttachment({
+    this.id,
+    this.fileName,
+    this.fileType,
+    this.fileSize,
+    this.downloadUrl,
+  });
+
+  factory TransactionAttachment.fromJson(Map<String, dynamic> json) =>
+      _$TransactionAttachmentFromJson(json);
+  Map<String, dynamic> toJson() => _$TransactionAttachmentToJson(this);
 }

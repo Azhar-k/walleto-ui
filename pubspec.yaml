@@ -47,6 +47,9 @@ dependencies:
   permission_handler: ^12.0.1
   flutter_sms_inbox: ^1.0.4
   telephony: ^0.2.0
+  file_picker: ^10.3.10
+  path_provider: ^2.1.5
+  open_filex: ^4.7.0
 
 dev_dependencies:
   flutter_test:
