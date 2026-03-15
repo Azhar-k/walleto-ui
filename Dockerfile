@@ -25,8 +25,12 @@ COPY --from=build /app/build/web .
 # Copy custom Nginx configuration to support SPA routing
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# Copy entrypoint script
+COPY docker-entrypoint.sh /
+RUN chmod +x /docker-entrypoint.sh
+
 # Expose the application port
 EXPOSE 80
 
 # Command to run Nginx in the foreground
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
