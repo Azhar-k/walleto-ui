@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
+import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -575,9 +576,19 @@ class _AttachmentsSectionState extends ConsumerState<_AttachmentsSection> {
     }
   }
 
-  Future<void> _downloadAttachment(TransactionAttachment attachment) async {
+  bool _isImage(String? fileName) {
+    if (fileName == null) return false;
+    final lower = fileName.toLowerCase();
+    return lower.endsWith('.jpg') ||
+        lower.endsWith('.jpeg') ||
+        lower.endsWith('.png') ||
+        lower.endsWith('.gif') ||
+        lower.endsWith('.webp');
+  }
+
+  Future<void> _handleAttachmentClick(TransactionAttachment attachment) async {
     debugPrint(
-      '[Attachments] Downloading attachment ${attachment.id} (${attachment.fileName})',
+      '[Attachments] Handling click for attachment ${attachment.id} (${attachment.fileName})',
     );
     setState(() => _isLoading = true);
     try {
@@ -587,24 +598,76 @@ class _AttachmentsSectionState extends ConsumerState<_AttachmentsSection> {
       debugPrint(
         '[Attachments] Downloaded ${bytes.length} bytes for ${attachment.fileName}',
       );
-      // Trigger browser download using a Blob + anchor element
-      debugPrint('[Attachments] Web platform: triggering browser download');
-      final blob = html.Blob([bytes]);
-      final url = html.Url.createObjectUrlFromBlob(blob);
-      html.AnchorElement(href: url)
-        ..setAttribute('download', attachment.fileName ?? 'attachment')
-        ..click();
-      html.Url.revokeObjectUrl(url);
+
+      if (_isImage(attachment.fileName)) {
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (ctx) => Dialog(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AppBar(
+                    title: Text(attachment.fileName ?? 'Preview'),
+                    leading: IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.download),
+                        tooltip: 'Download',
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _triggerBrowserDownload(
+                            bytes,
+                            attachment.fileName ?? 'attachment',
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Image.memory(
+                          Uint8List.fromList(bytes),
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+      } else {
+        _triggerBrowserDownload(bytes, attachment.fileName ?? 'attachment');
+      }
     } catch (e, st) {
-      debugPrint('[Attachments] ❌ Download failed: $e\n$st');
+      debugPrint('[Attachments] ❌ Failed to fetch attachment: $e\n$st');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Download failed: $e')));
+        ).showSnackBar(SnackBar(content: Text('Failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _triggerBrowserDownload(List<int> bytes, String fileName) {
+    debugPrint(
+      '[Attachments] Web platform: triggering browser download for $fileName',
+    );
+    final blob = html.Blob([bytes]);
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    html.AnchorElement(href: url)
+      ..setAttribute('download', fileName)
+      ..click();
+    html.Url.revokeObjectUrl(url);
   }
 
   @override
@@ -650,7 +713,7 @@ class _AttachmentsSectionState extends ConsumerState<_AttachmentsSection> {
             children: attachments.map((a) {
               return Chip(
                 label: InkWell(
-                  onTap: _isLoading ? null : () => _downloadAttachment(a),
+                  onTap: _isLoading ? null : () => _handleAttachmentClick(a),
                   child: Text(
                     a.fileName ?? 'Unknown File',
                     style: const TextStyle(
