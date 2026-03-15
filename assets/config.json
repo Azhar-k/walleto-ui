@@ -1,4 +1,4 @@
 {
-    "coreBaseUrl": "http://localhost:8080",
-    "userBaseUrl": "http://localhost:8073"
+    "coreBaseUrl": "http://localhost:8071/api/core",
+    "userBaseUrl": "http://localhost:8071/api/userservice"
 }
