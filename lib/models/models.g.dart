@@ -93,6 +93,9 @@ Transaction _$TransactionFromJson(Map<String, dynamic> json) => Transaction(
   recurringPaymentId: (json['recurringPaymentId'] as num?)?.toInt(),
   excludeFromSummary: json['excludeFromSummary'] as bool?,
   version: (json['version'] as num?)?.toInt(),
+  attachments: (json['attachments'] as List<dynamic>?)
+      ?.map((e) => TransactionAttachment.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$TransactionToJson(Transaction instance) =>
@@ -113,6 +116,7 @@ Map<String, dynamic> _$TransactionToJson(Transaction instance) =>
       'recurringPaymentId': instance.recurringPaymentId,
       'excludeFromSummary': instance.excludeFromSummary,
       'version': instance.version,
+      'attachments': instance.attachments,
     };
 
 const _$TransactionTypeEnumMap = {
@@ -236,4 +240,24 @@ Map<String, dynamic> _$AuditLogSearchRequestToJson(
   'entityId': instance.entityId,
   'username': instance.username,
   'query': instance.query,
+};
+
+TransactionAttachment _$TransactionAttachmentFromJson(
+  Map<String, dynamic> json,
+) => TransactionAttachment(
+  id: (json['id'] as num?)?.toInt(),
+  fileName: json['fileName'] as String?,
+  fileType: json['fileType'] as String?,
+  fileSize: (json['fileSize'] as num?)?.toInt(),
+  downloadUrl: json['downloadUrl'] as String?,
+);
+
+Map<String, dynamic> _$TransactionAttachmentToJson(
+  TransactionAttachment instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'fileName': instance.fileName,
+  'fileType': instance.fileType,
+  'fileSize': instance.fileSize,
+  'downloadUrl': instance.downloadUrl,
 };

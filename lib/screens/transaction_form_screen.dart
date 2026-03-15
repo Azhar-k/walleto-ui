@@ -1,7 +1,12 @@
+// ignore_for_file: deprecated_member_use
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html;
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:file_picker/file_picker.dart';
 import '../providers/core_providers.dart';
 import '../providers/summary_providers.dart';
 import '../providers/additional_providers.dart';
@@ -421,6 +426,12 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                         onChanged: (val) =>
                             setState(() => _excludeFromSummary = val),
                       ),
+                      if (isEditing) ...[
+                        const Divider(height: 32),
+                        _AttachmentsSection(
+                          transactionId: widget.existingTransaction!.id!,
+                        ),
+                      ],
                       const SizedBox(height: 32),
                       ElevatedButton(
                         onPressed: _isLoading
@@ -451,6 +462,209 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(child: Text('Error loading accounts: $e')),
       ),
+    );
+  }
+}
+
+class _AttachmentsSection extends ConsumerStatefulWidget {
+  final int transactionId;
+  const _AttachmentsSection({required this.transactionId});
+
+  @override
+  ConsumerState<_AttachmentsSection> createState() =>
+      _AttachmentsSectionState();
+}
+
+class _AttachmentsSectionState extends ConsumerState<_AttachmentsSection> {
+  List<TransactionAttachment>? _attachments;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAttachments();
+  }
+
+  Future<void> _loadAttachments() async {
+    debugPrint(
+      '[Attachments] Loading attachments for txn ${widget.transactionId}',
+    );
+    setState(() => _isLoading = true);
+    try {
+      final attachments = await ref
+          .read(transactionServiceProvider)
+          .getAttachments(widget.transactionId);
+      debugPrint('[Attachments] Loaded ${attachments.length} attachments');
+      if (mounted) {
+        setState(() {
+          _attachments = attachments;
+          _isLoading = false;
+        });
+      }
+    } catch (e, st) {
+      debugPrint('[Attachments] ❌ Failed to load attachments: $e\n$st');
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _uploadAttachment() async {
+    debugPrint('[Attachments] Opening file picker...');
+    final result = await FilePicker.platform.pickFiles(withData: true);
+    if (result == null) {
+      debugPrint('[Attachments] File picker cancelled');
+      return;
+    }
+    final picked = result.files.single;
+    final bytes = picked.bytes;
+    final fileName = picked.name;
+    debugPrint(
+      '[Attachments] Picked file: $fileName, size: ${bytes?.length} bytes',
+    );
+    if (bytes == null) {
+      debugPrint('[Attachments] ❌ No bytes available for file: $fileName');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not read file bytes.')),
+        );
+      }
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      final multipartFile = MultipartFile.fromBytes(bytes, filename: fileName);
+      debugPrint(
+        '[Attachments] Uploading $fileName to txn ${widget.transactionId}...',
+      );
+      await ref
+          .read(transactionServiceProvider)
+          .uploadAttachment(widget.transactionId, multipartFile);
+      debugPrint('[Attachments] ✅ Upload successful');
+      await _loadAttachments();
+    } catch (e, st) {
+      debugPrint('[Attachments] ❌ Upload failed: $e\n$st');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _deleteAttachment(int attachmentId) async {
+    debugPrint(
+      '[Attachments] Deleting attachment $attachmentId from txn ${widget.transactionId}',
+    );
+    setState(() => _isLoading = true);
+    try {
+      await ref
+          .read(transactionServiceProvider)
+          .deleteAttachment(widget.transactionId, attachmentId);
+      debugPrint('[Attachments] ✅ Deleted attachment $attachmentId');
+      await _loadAttachments();
+    } catch (e, st) {
+      debugPrint('[Attachments] ❌ Delete failed: $e\n$st');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _downloadAttachment(TransactionAttachment attachment) async {
+    debugPrint(
+      '[Attachments] Downloading attachment ${attachment.id} (${attachment.fileName})',
+    );
+    setState(() => _isLoading = true);
+    try {
+      final bytes = await ref
+          .read(transactionServiceProvider)
+          .downloadAttachment(widget.transactionId, attachment.id!);
+      debugPrint(
+        '[Attachments] Downloaded ${bytes.length} bytes for ${attachment.fileName}',
+      );
+      // Trigger browser download using a Blob + anchor element
+      debugPrint('[Attachments] Web platform: triggering browser download');
+      final blob = html.Blob([bytes]);
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      html.AnchorElement(href: url)
+        ..setAttribute('download', attachment.fileName ?? 'attachment')
+        ..click();
+      html.Url.revokeObjectUrl(url);
+    } catch (e, st) {
+      debugPrint('[Attachments] ❌ Download failed: $e\n$st');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Download failed: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_attachments == null && _isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final attachments = _attachments ?? [];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Attachments',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            IconButton(
+              icon: _isLoading
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.add_a_photo),
+              onPressed: _isLoading ? null : _uploadAttachment,
+              tooltip: 'Add Attachment',
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (attachments.isEmpty)
+          const Text(
+            'No attachments linked yet.',
+            style: TextStyle(color: Colors.grey),
+          )
+        else
+          Wrap(
+            spacing: 8,
+            children: attachments.map((a) {
+              return Chip(
+                label: InkWell(
+                  onTap: _isLoading ? null : () => _downloadAttachment(a),
+                  child: Text(
+                    a.fileName ?? 'Unknown File',
+                    style: const TextStyle(
+                      decoration: TextDecoration.underline,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+                deleteIcon: const Icon(Icons.close, size: 16),
+                onDeleted: _isLoading ? null : () => _deleteAttachment(a.id!),
+              );
+            }).toList(),
+          ),
+      ],
     );
   }
 }

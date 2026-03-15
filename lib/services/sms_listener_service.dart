@@ -16,6 +16,11 @@ class SmsListenerService {
   static Future<void> initialize() async {
     debugPrint("Initializing SMS Listener...");
 
+    if (kIsWeb) {
+      debugPrint("SMS Listening is not supported on the Web platform.");
+      return;
+    }
+
     bool? permissionsGranted = await telephony.requestPhoneAndSmsPermissions;
     if (permissionsGranted == true) {
       telephony.listenIncomingSms(
