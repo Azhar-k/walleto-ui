@@ -1,10 +1,12 @@
 // ignore_for_file: deprecated_member_use
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
-import 'dart:typed_data';
+import 'dart:ui_web' as ui_web;
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
@@ -586,6 +588,11 @@ class _AttachmentsSectionState extends ConsumerState<_AttachmentsSection> {
         lower.endsWith('.webp');
   }
 
+  bool _isPdf(String? fileName) {
+    if (fileName == null) return false;
+    return fileName.toLowerCase().endsWith('.pdf');
+  }
+
   Future<void> _handleAttachmentClick(
     TransactionAttachment attachment, {
     Uint8List? prefetchedBytes,
@@ -652,6 +659,73 @@ class _AttachmentsSectionState extends ConsumerState<_AttachmentsSection> {
               ),
             ),
           );
+        }
+      } else if (_isPdf(attachment.fileName)) {
+        // On web: embed the PDF bytes in an iframe inside a dialog (blob URL
+        // works same-origin when embedded; fails in new tabs due to security).
+        // On mobile: open via url_launcher.
+        if (kIsWeb) {
+          final data = Uint8List.fromList(bytes);
+          final blob = html.Blob([data], 'application/pdf');
+          final blobUrl = html.Url.createObjectUrlFromBlob(blob);
+
+          // Register a unique platform view for this iframe
+          final viewId =
+              'pdf-view-${attachment.id}-${DateTime.now().millisecondsSinceEpoch}';
+          ui_web.platformViewRegistry.registerViewFactory(viewId, (int _) {
+            return html.IFrameElement()
+              ..src = blobUrl
+              ..style.border = 'none'
+              ..style.width = '100%'
+              ..style.height = '100%';
+          });
+
+          if (mounted) {
+            await showDialog(
+              context: context,
+              builder: (ctx) => Dialog(
+                insetPadding: const EdgeInsets.all(20),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: MediaQuery.of(ctx).size.height * 0.85,
+                  child: Column(
+                    children: [
+                      AppBar(
+                        title: Text(attachment.fileName ?? 'PDF Preview'),
+                        automaticallyImplyLeading: false,
+                        actions: [
+                          IconButton(
+                            icon: const Icon(Icons.download),
+                            tooltip: 'Download',
+                            onPressed: () {
+                              _triggerBrowserDownload(
+                                bytes,
+                                attachment.fileName ?? 'attachment',
+                              );
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(ctx),
+                          ),
+                        ],
+                      ),
+                      Expanded(child: HtmlElementView(viewType: viewId)),
+                    ],
+                  ),
+                ),
+              ),
+            );
+            html.Url.revokeObjectUrl(blobUrl);
+          }
+        } else {
+          final urlStr = attachment.downloadUrl;
+          if (urlStr != null) {
+            final uri = Uri.parse(urlStr);
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            }
+          }
         }
       } else {
         _triggerBrowserDownload(bytes, attachment.fileName ?? 'attachment');
@@ -728,6 +802,7 @@ class _AttachmentsSectionState extends ConsumerState<_AttachmentsSection> {
                 transactionId: widget.transactionId,
                 isLoading: _isLoading,
                 isImage: _isImage(a.fileName),
+                isPdf: _isPdf(a.fileName),
                 onDelete: () => _deleteAttachment(a.id!),
                 onPreview: (bytes) =>
                     _handleAttachmentClick(a, prefetchedBytes: bytes),
@@ -746,6 +821,7 @@ class _AttachmentItem extends ConsumerStatefulWidget {
   final VoidCallback onDelete;
   final void Function(Uint8List? bytes) onPreview;
   final bool isImage;
+  final bool isPdf;
 
   const _AttachmentItem({
     required this.attachment,
@@ -754,6 +830,7 @@ class _AttachmentItem extends ConsumerStatefulWidget {
     required this.onDelete,
     required this.onPreview,
     required this.isImage,
+    required this.isPdf,
   });
 
   @override
@@ -767,6 +844,7 @@ class _AttachmentItemState extends ConsumerState<_AttachmentItem> {
   @override
   void initState() {
     super.initState();
+    // Only prefetch bytes for image thumbnails; PDFs just show an icon
     if (widget.isImage) {
       _fetchBytes();
     }
@@ -778,6 +856,7 @@ class _AttachmentItemState extends ConsumerState<_AttachmentItem> {
       final bytes = await ref
           .read(transactionServiceProvider)
           .downloadAttachment(widget.transactionId, widget.attachment.id!);
+
       if (mounted) {
         setState(() {
           _imageBytes = Uint8List.fromList(bytes);
@@ -792,7 +871,7 @@ class _AttachmentItemState extends ConsumerState<_AttachmentItem> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.isImage) {
+    if (widget.isImage || widget.isPdf) {
       return SizedBox(
         width: 72,
         height: 72,
@@ -823,7 +902,10 @@ class _AttachmentItemState extends ConsumerState<_AttachmentItem> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             ),
                           )
-                        : const Icon(Icons.image, color: Colors.grey),
+                        : Icon(
+                            widget.isPdf ? Icons.picture_as_pdf : Icons.image,
+                            color: Colors.grey,
+                          ),
                   ),
                 ),
               ),
