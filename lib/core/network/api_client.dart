@@ -2,16 +2,15 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'auth_interceptor.dart';
 import 'api_response_interceptor.dart';
+import '../config/app_config.dart';
 
 class ApiClient {
   static String get coreBaseUrl {
-    return 'http://localhost:8080';
-    // return 'https://83b9-2401-4900-615c-b5bc-371b-e578-a22a-1f18.ngrok-free.app/api/core'; // Loopback for Android emulator
+    return AppConfig.coreBaseUrl;
   }
 
   static String get userBaseUrl {
-    return 'http://localhost:8073';
-    // return 'https://83b9-2401-4900-615c-b5bc-371b-e578-a22a-1f18.ngrok-free.app/api/userservice';
+    return AppConfig.userBaseUrl;
   }
 
   static Dio getCoreClient() {
