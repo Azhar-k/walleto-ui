@@ -1,9 +1,12 @@
 // ignore_for_file: deprecated_member_use
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
+import 'dart:ui_web' as ui_web;
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
@@ -575,36 +578,180 @@ class _AttachmentsSectionState extends ConsumerState<_AttachmentsSection> {
     }
   }
 
-  Future<void> _downloadAttachment(TransactionAttachment attachment) async {
+  bool _isImage(String? fileName) {
+    if (fileName == null) return false;
+    final lower = fileName.toLowerCase();
+    return lower.endsWith('.jpg') ||
+        lower.endsWith('.jpeg') ||
+        lower.endsWith('.png') ||
+        lower.endsWith('.gif') ||
+        lower.endsWith('.webp');
+  }
+
+  bool _isPdf(String? fileName) {
+    if (fileName == null) return false;
+    return fileName.toLowerCase().endsWith('.pdf');
+  }
+
+  Future<void> _handleAttachmentClick(
+    TransactionAttachment attachment, {
+    Uint8List? prefetchedBytes,
+  }) async {
     debugPrint(
-      '[Attachments] Downloading attachment ${attachment.id} (${attachment.fileName})',
+      '[Attachments] Handling click for attachment ${attachment.id} (${attachment.fileName})',
     );
-    setState(() => _isLoading = true);
+    if (prefetchedBytes == null) {
+      setState(() => _isLoading = true);
+    }
     try {
-      final bytes = await ref
-          .read(transactionServiceProvider)
-          .downloadAttachment(widget.transactionId, attachment.id!);
+      List<int> bytes;
+      if (prefetchedBytes != null) {
+        bytes = prefetchedBytes;
+      } else {
+        bytes = await ref
+            .read(transactionServiceProvider)
+            .downloadAttachment(widget.transactionId, attachment.id!);
+      }
       debugPrint(
         '[Attachments] Downloaded ${bytes.length} bytes for ${attachment.fileName}',
       );
-      // Trigger browser download using a Blob + anchor element
-      debugPrint('[Attachments] Web platform: triggering browser download');
-      final blob = html.Blob([bytes]);
-      final url = html.Url.createObjectUrlFromBlob(blob);
-      html.AnchorElement(href: url)
-        ..setAttribute('download', attachment.fileName ?? 'attachment')
-        ..click();
-      html.Url.revokeObjectUrl(url);
+
+      if (_isImage(attachment.fileName)) {
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (ctx) => Dialog(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AppBar(
+                    title: Text(attachment.fileName ?? 'Preview'),
+                    leading: IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.download),
+                        tooltip: 'Download',
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _triggerBrowserDownload(
+                            bytes,
+                            attachment.fileName ?? 'attachment',
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Image.memory(
+                          Uint8List.fromList(bytes),
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+      } else if (_isPdf(attachment.fileName)) {
+        // On web: embed the PDF bytes in an iframe inside a dialog (blob URL
+        // works same-origin when embedded; fails in new tabs due to security).
+        // On mobile: open via url_launcher.
+        if (kIsWeb) {
+          final data = Uint8List.fromList(bytes);
+          final blob = html.Blob([data], 'application/pdf');
+          final blobUrl = html.Url.createObjectUrlFromBlob(blob);
+
+          // Register a unique platform view for this iframe
+          final viewId =
+              'pdf-view-${attachment.id}-${DateTime.now().millisecondsSinceEpoch}';
+          ui_web.platformViewRegistry.registerViewFactory(viewId, (int _) {
+            return html.IFrameElement()
+              ..src = blobUrl
+              ..style.border = 'none'
+              ..style.width = '100%'
+              ..style.height = '100%';
+          });
+
+          if (mounted) {
+            await showDialog(
+              context: context,
+              builder: (ctx) => Dialog(
+                insetPadding: const EdgeInsets.all(20),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: MediaQuery.of(ctx).size.height * 0.85,
+                  child: Column(
+                    children: [
+                      AppBar(
+                        title: Text(attachment.fileName ?? 'PDF Preview'),
+                        automaticallyImplyLeading: false,
+                        actions: [
+                          IconButton(
+                            icon: const Icon(Icons.download),
+                            tooltip: 'Download',
+                            onPressed: () {
+                              _triggerBrowserDownload(
+                                bytes,
+                                attachment.fileName ?? 'attachment',
+                              );
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(ctx),
+                          ),
+                        ],
+                      ),
+                      Expanded(child: HtmlElementView(viewType: viewId)),
+                    ],
+                  ),
+                ),
+              ),
+            );
+            html.Url.revokeObjectUrl(blobUrl);
+          }
+        } else {
+          final urlStr = attachment.downloadUrl;
+          if (urlStr != null) {
+            final uri = Uri.parse(urlStr);
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            }
+          }
+        }
+      } else {
+        _triggerBrowserDownload(bytes, attachment.fileName ?? 'attachment');
+      }
     } catch (e, st) {
-      debugPrint('[Attachments] ❌ Download failed: $e\n$st');
+      debugPrint('[Attachments] ❌ Failed to fetch attachment: $e\n$st');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Download failed: $e')));
+        ).showSnackBar(SnackBar(content: Text('Failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _triggerBrowserDownload(List<int> bytes, String fileName) {
+    debugPrint(
+      '[Attachments] Web platform: triggering browser download for $fileName',
+    );
+    final blob = html.Blob([bytes]);
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    html.AnchorElement(href: url)
+      ..setAttribute('download', fileName)
+      ..click();
+    html.Url.revokeObjectUrl(url);
   }
 
   @override
@@ -646,25 +793,158 @@ class _AttachmentsSectionState extends ConsumerState<_AttachmentsSection> {
           )
         else
           Wrap(
-            spacing: 8,
+            spacing: 12,
+            runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: attachments.map((a) {
-              return Chip(
-                label: InkWell(
-                  onTap: _isLoading ? null : () => _downloadAttachment(a),
-                  child: Text(
-                    a.fileName ?? 'Unknown File',
-                    style: const TextStyle(
-                      decoration: TextDecoration.underline,
-                      color: Colors.blue,
-                    ),
-                  ),
-                ),
-                deleteIcon: const Icon(Icons.close, size: 16),
-                onDeleted: _isLoading ? null : () => _deleteAttachment(a.id!),
+              return _AttachmentItem(
+                attachment: a,
+                transactionId: widget.transactionId,
+                isLoading: _isLoading,
+                isImage: _isImage(a.fileName),
+                isPdf: _isPdf(a.fileName),
+                onDelete: () => _deleteAttachment(a.id!),
+                onPreview: (bytes) =>
+                    _handleAttachmentClick(a, prefetchedBytes: bytes),
               );
             }).toList(),
           ),
       ],
+    );
+  }
+}
+
+class _AttachmentItem extends ConsumerStatefulWidget {
+  final TransactionAttachment attachment;
+  final int transactionId;
+  final bool isLoading;
+  final VoidCallback onDelete;
+  final void Function(Uint8List? bytes) onPreview;
+  final bool isImage;
+  final bool isPdf;
+
+  const _AttachmentItem({
+    required this.attachment,
+    required this.transactionId,
+    required this.isLoading,
+    required this.onDelete,
+    required this.onPreview,
+    required this.isImage,
+    required this.isPdf,
+  });
+
+  @override
+  ConsumerState<_AttachmentItem> createState() => _AttachmentItemState();
+}
+
+class _AttachmentItemState extends ConsumerState<_AttachmentItem> {
+  Uint8List? _imageBytes;
+  bool _loadingBytes = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Only prefetch bytes for image thumbnails; PDFs just show an icon
+    if (widget.isImage) {
+      _fetchBytes();
+    }
+  }
+
+  Future<void> _fetchBytes() async {
+    setState(() => _loadingBytes = true);
+    try {
+      final bytes = await ref
+          .read(transactionServiceProvider)
+          .downloadAttachment(widget.transactionId, widget.attachment.id!);
+
+      if (mounted) {
+        setState(() {
+          _imageBytes = Uint8List.fromList(bytes);
+          _loadingBytes = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('[Attachments] Failed to prefetch thumbnail: $e');
+      if (mounted) setState(() => _loadingBytes = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.isImage || widget.isPdf) {
+      return SizedBox(
+        width: 72,
+        height: 72,
+        child: Stack(
+          children: [
+            Align(
+              alignment: Alignment.bottomLeft,
+              child: InkWell(
+                onTap: widget.isLoading
+                    ? null
+                    : () => widget.onPreview(_imageBytes),
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: _imageBytes != null
+                        ? Image.memory(_imageBytes!, fit: BoxFit.cover)
+                        : _loadingBytes
+                        ? const Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : Icon(
+                            widget.isPdf ? Icons.picture_as_pdf : Icons.image,
+                            color: Colors.grey,
+                          ),
+                  ),
+                ),
+              ),
+            ),
+            Align(
+              alignment: Alignment.topRight,
+              child: GestureDetector(
+                onTap: widget.isLoading ? null : widget.onDelete,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.cancel,
+                    color: Colors.redAccent,
+                    size: 22,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Chip(
+      label: InkWell(
+        onTap: widget.isLoading ? null : () => widget.onPreview(null),
+        child: Text(
+          widget.attachment.fileName ?? 'Unknown File',
+          style: const TextStyle(
+            decoration: TextDecoration.underline,
+            color: Colors.blue,
+          ),
+        ),
+      ),
+      deleteIcon: const Icon(Icons.close, size: 16),
+      onDeleted: widget.isLoading ? null : widget.onDelete,
     );
   }
 }
