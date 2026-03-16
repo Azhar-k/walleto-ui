@@ -1,6 +1,3 @@
-// ignore_for_file: deprecated_member_use
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +8,7 @@ import '../providers/core_providers.dart';
 import '../providers/summary_providers.dart';
 import '../providers/additional_providers.dart';
 import '../models/models.dart';
+import '../utils/web_download.dart';
 
 class TransactionFormScreen extends ConsumerStatefulWidget {
   final Transaction? existingTransaction;
@@ -587,14 +585,9 @@ class _AttachmentsSectionState extends ConsumerState<_AttachmentsSection> {
       debugPrint(
         '[Attachments] Downloaded ${bytes.length} bytes for ${attachment.fileName}',
       );
-      // Trigger browser download using a Blob + anchor element
+      // Trigger browser download using our cross platform helper
       debugPrint('[Attachments] Web platform: triggering browser download');
-      final blob = html.Blob([bytes]);
-      final url = html.Url.createObjectUrlFromBlob(blob);
-      html.AnchorElement(href: url)
-        ..setAttribute('download', attachment.fileName ?? 'attachment')
-        ..click();
-      html.Url.revokeObjectUrl(url);
+      downloadFileWeb(bytes, attachment.fileName ?? 'attachment');
     } catch (e, st) {
       debugPrint('[Attachments] ❌ Download failed: $e\n$st');
       if (mounted) {
