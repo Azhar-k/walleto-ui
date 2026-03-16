@@ -351,4 +351,119 @@ void main() {
     expect(tx.id, 99);
     expect(tx.excludeFromSummary, isTrue);
   });
+
+  testWidgets('Transaction Creation Flow - Default Account is Preselected', (
+    WidgetTester tester,
+  ) async {
+    final mockService = MockTransactionService();
+
+    await tester.pumpWidget(buildTestSetup(mockService));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Add Transaction'), findsOneWidget);
+
+    // Verify Default Bank is selected
+    final accountDropdownFinder = find.byWidgetPredicate(
+      (widget) =>
+          widget is DropdownButtonFormField<Account> &&
+          widget.decoration?.labelText == 'Account *',
+    );
+    expect(accountDropdownFinder, findsOneWidget);
+
+    // In our testAccounts, 'Test Bank' is the default
+    expect(find.text('Test Bank'), findsOneWidget);
+  });
+
+  testWidgets(
+    'Transaction Creation Flow - Changing Account, Category and Linking Recurring Payment',
+    (WidgetTester tester) async {
+      final mockService = MockTransactionService();
+
+      // To test changing, we need at least two accounts and categories
+      final extendedAccounts = [
+        Account(id: 1, name: 'Test Bank', currency: 'INR', isDefault: true),
+        Account(id: 2, name: 'Wallet', currency: 'INR', isDefault: false),
+      ];
+      final extendedCategories = [
+        Category(id: 10, name: 'Food', type: CategoryType.expense),
+        Category(id: 12, name: 'Transport', type: CategoryType.expense),
+      ];
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            accountsProvider.overrideWith((ref) => extendedAccounts),
+            categoriesProvider.overrideWith((ref) => extendedCategories),
+            recurringPaymentsProvider.overrideWith((ref) => testRecurring),
+            transactionServiceProvider.overrideWithValue(mockService),
+            netBalanceProvider.overrideWith((ref) => 1000.0),
+          ],
+          child: const MaterialApp(home: TransactionFormScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Add Transaction'), findsOneWidget);
+
+      // Enter Amount
+      await tester.enterText(find.byType(TextFormField).at(0), '100.0');
+
+      // Change Account from Default (Test Bank) to Wallet
+      final accountDropdownFinder = find.byWidgetPredicate(
+        (widget) =>
+            widget is DropdownButtonFormField<Account> &&
+            widget.decoration?.labelText == 'Account *',
+      );
+      await tester.tap(accountDropdownFinder);
+      await tester.pumpAndSettle();
+
+      // Tap the 'Wallet' option
+      await tester.tap(find.text('Wallet').last);
+      await tester.pumpAndSettle();
+
+      // Change Category from Food to Transport
+      final categoryDropdownFinder = find.byWidgetPredicate(
+        (widget) =>
+            widget is DropdownButtonFormField<Category> &&
+            widget.decoration?.labelText == 'Category *',
+      );
+      await tester.tap(categoryDropdownFinder);
+      await tester.pumpAndSettle();
+
+      // Tap the 'Transport' option
+      await tester.tap(find.text('Transport').last);
+      await tester.pumpAndSettle();
+
+      // Change Linked Recurring Payment
+      final recurringDropdownFinder = find.byWidgetPredicate(
+        (widget) =>
+            widget is DropdownButtonFormField<RecurringPayment?> &&
+            widget.decoration?.labelText ==
+                'Linked Recurring Payment (optional)',
+      );
+      await tester.ensureVisible(recurringDropdownFinder);
+      await tester.tap(recurringDropdownFinder);
+      await tester.pumpAndSettle();
+
+      // Tap the 'Netflix' option
+      await tester.tap(find.text('Netflix  •  ₹800').last);
+      await tester.pumpAndSettle();
+
+      final saveButton = find.text('SAVE TRANSACTION');
+      await tester.ensureVisible(saveButton);
+      await tester.tap(saveButton);
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
+
+      expect(mockService.lastSavedTransaction, isNotNull);
+      final tx = mockService.lastSavedTransaction!;
+
+      // Assert changed selections
+      expect(tx.accountId, 2); // Wallet
+      expect(tx.categoryId, 12); // Transport
+      expect(tx.recurringPaymentId, 100); // Netflix
+    },
+  );
 }
