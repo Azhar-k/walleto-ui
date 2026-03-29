@@ -366,7 +366,7 @@ void main() {
     final accountDropdownFinder = find.byWidgetPredicate(
       (widget) =>
           widget is DropdownButtonFormField<Account> &&
-          widget.decoration?.labelText == 'Account *',
+          widget.decoration.labelText == 'Account *',
     );
     expect(accountDropdownFinder, findsOneWidget);
 
@@ -412,7 +412,7 @@ void main() {
       final accountDropdownFinder = find.byWidgetPredicate(
         (widget) =>
             widget is DropdownButtonFormField<Account> &&
-            widget.decoration?.labelText == 'Account *',
+            widget.decoration.labelText == 'Account *',
       );
       await tester.tap(accountDropdownFinder);
       await tester.pumpAndSettle();
@@ -425,7 +425,7 @@ void main() {
       final categoryDropdownFinder = find.byWidgetPredicate(
         (widget) =>
             widget is DropdownButtonFormField<Category> &&
-            widget.decoration?.labelText == 'Category *',
+            widget.decoration.labelText == 'Category *',
       );
       await tester.tap(categoryDropdownFinder);
       await tester.pumpAndSettle();
@@ -438,7 +438,7 @@ void main() {
       final recurringDropdownFinder = find.byWidgetPredicate(
         (widget) =>
             widget is DropdownButtonFormField<RecurringPayment?> &&
-            widget.decoration?.labelText ==
+            widget.decoration.labelText ==
                 'Linked Recurring Payment (optional)',
       );
       await tester.ensureVisible(recurringDropdownFinder);
