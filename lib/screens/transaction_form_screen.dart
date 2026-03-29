@@ -1,7 +1,4 @@
 // ignore_for_file: deprecated_member_use
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
-import 'dart:ui_web' as ui_web;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
@@ -14,6 +11,7 @@ import '../providers/core_providers.dart';
 import '../providers/summary_providers.dart';
 import '../providers/additional_providers.dart';
 import '../models/models.dart';
+import '../utils/platform_utils.dart';
 
 class TransactionFormScreen extends ConsumerStatefulWidget {
   final Transaction? existingTransaction;
@@ -666,19 +664,11 @@ class _AttachmentsSectionState extends ConsumerState<_AttachmentsSection> {
         // On mobile: open via url_launcher.
         if (kIsWeb) {
           final data = Uint8List.fromList(bytes);
-          final blob = html.Blob([data], 'application/pdf');
-          final blobUrl = html.Url.createObjectUrlFromBlob(blob);
 
           // Register a unique platform view for this iframe
           final viewId =
               'pdf-view-${attachment.id}-${DateTime.now().millisecondsSinceEpoch}';
-          ui_web.platformViewRegistry.registerViewFactory(viewId, (int _) {
-            return html.IFrameElement()
-              ..src = blobUrl
-              ..style.border = 'none'
-              ..style.width = '100%'
-              ..style.height = '100%';
-          });
+          registerPdfViewFactory(viewId, data);
 
           if (mounted) {
             await showDialog(
@@ -716,7 +706,7 @@ class _AttachmentsSectionState extends ConsumerState<_AttachmentsSection> {
                 ),
               ),
             );
-            html.Url.revokeObjectUrl(blobUrl);
+            revokeBlobUrlByViewId(viewId);
           }
         } else {
           final urlStr = attachment.downloadUrl;
@@ -746,12 +736,7 @@ class _AttachmentsSectionState extends ConsumerState<_AttachmentsSection> {
     debugPrint(
       '[Attachments] Web platform: triggering browser download for $fileName',
     );
-    final blob = html.Blob([bytes]);
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    html.AnchorElement(href: url)
-      ..setAttribute('download', fileName)
-      ..click();
-    html.Url.revokeObjectUrl(url);
+    triggerBrowserDownload(bytes, fileName);
   }
 
   @override
