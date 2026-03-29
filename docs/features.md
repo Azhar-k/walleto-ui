@@ -93,8 +93,11 @@ I will give the screen details one by one
  - Registration with email, username and password 
  - Login with email and password
  - Call user management service for user registration.
- - Call user management service for login and generate an auth token.
- - Use this auth token when calling the expense mate backend APIs
+ - Call user management service for login to receive an auth token and a refresh token.
+ - Securely store both tokens on the device.
+ - Use this auth token when calling the expense mate backend APIs.
+ - API calls that fail with a 401 Unauthorized are automatically intercepted to refresh the auth token using the stored refresh token, and the failed request is seamlessly retried.
+ - If the refresh token itself expires, the user is safely logged out.
 
  When the application is opened, if not logged in, navigate to this screen.
 ## Screen: Transactions
