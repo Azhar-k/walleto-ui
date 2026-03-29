@@ -12,6 +12,12 @@ abstract class AuthService {
 
   @POST('/api/v1/auth/register')
   Future<UserResponse> register(@Body() RegisterRequest request);
+
+  @POST('/api/v1/auth/refresh')
+  Future<AuthResponse> refreshToken(@Body() RefreshTokenRequest request);
+
+  @POST('/api/v1/auth/logout')
+  Future<void> logout();
 }
 
 class AuthRequest {
@@ -24,6 +30,14 @@ class AuthRequest {
     'usernameOrEmail': usernameOrEmail,
     'password': password,
   };
+}
+
+class RefreshTokenRequest {
+  final String refreshToken;
+
+  RefreshTokenRequest({required this.refreshToken});
+
+  Map<String, dynamic> toJson() => {'refreshToken': refreshToken};
 }
 
 class RegisterRequest {

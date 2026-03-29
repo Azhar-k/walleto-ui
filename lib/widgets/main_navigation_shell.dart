@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../core/storage/token_storage.dart';
+import '../core/network/api_client.dart';
+import '../services/auth_service.dart';
 import '../core/theme/app_theme.dart';
 
 class MainNavigationShell extends StatefulWidget {
@@ -36,10 +38,15 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   }
 
   void _logout(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
-    if (context.mounted) {
-      context.go('/login');
+    try {
+      final authService = AuthService(ApiClient.getUserClient());
+      await authService.logout();
+    } catch (_) {
+    } finally {
+      await TokenStorage.clearTokens();
+      if (context.mounted) {
+        context.go('/login');
+      }
     }
   }
 
