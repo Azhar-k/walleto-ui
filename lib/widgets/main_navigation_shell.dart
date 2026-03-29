@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../core/storage/token_storage.dart';
 import '../core/network/api_client.dart';
 import '../services/auth_service.dart';
 import '../core/theme/app_theme.dart';
+import '../providers/core_providers.dart';
+import '../providers/summary_providers.dart';
 
-class MainNavigationShell extends StatefulWidget {
+class MainNavigationShell extends ConsumerStatefulWidget {
   final Widget child;
 
   const MainNavigationShell({super.key, required this.child});
 
   @override
-  State<MainNavigationShell> createState() => _MainNavigationShellState();
+  ConsumerState<MainNavigationShell> createState() =>
+      _MainNavigationShellState();
 }
 
-class _MainNavigationShellState extends State<MainNavigationShell> {
+class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
   int _calculateSelectedIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
     if (location.startsWith('/summary')) return 0;
@@ -26,12 +30,19 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
       case 0:
+        ref.invalidate(accountsProvider);
+        ref.invalidate(defaultAccountProvider);
+        ref.invalidate(monthlySummaryProvider);
+        ref.invalidate(netBalanceProvider);
         context.go('/summary');
         break;
       case 1:
+        ref.invalidate(accountsProvider);
+        ref.invalidate(netBalanceProvider);
         context.go('/accounts');
         break;
       case 2:
+        ref.read(transactionSearchProvider.notifier).search();
         context.go('/transactions');
         break;
     }
