@@ -109,7 +109,7 @@ class _ScanSmsScreenState extends ConsumerState<ScanSmsScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              'Select a date range to scan your device for financial SMS messages.',
+              'Select a date range to scan your device for financial SMS messages.\n\nNote: Historical RCS messages cannot be scanned natively due to OS restrictions, but incoming RCS messages are monitored in real-time.',
               style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 24),

@@ -1,6 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:walleto_ui/core/storage/token_storage.dart';
 import 'package:walleto_ui/screens/login_screen.dart';
 import 'package:walleto_ui/screens/register_screen.dart';
 import 'package:walleto_ui/screens/accounts_screen.dart';
@@ -27,9 +27,7 @@ final GoRouter appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: '/summary',
   redirect: (BuildContext context, GoRouterState state) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
-    final isLoggedIn = token != null && token.isNotEmpty;
+    final isLoggedIn = await TokenStorage.hasValidToken();
     final isLoggingIn =
         state.matchedLocation == '/login' ||
         state.matchedLocation == '/register';

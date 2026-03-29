@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/auth_provider.dart';
 import '../services/auth_service.dart';
+import '../core/storage/token_storage.dart';
 import '../core/theme/app_theme.dart';
 import 'package:dio/dio.dart';
 
@@ -34,8 +34,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         );
 
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('auth_token', response.accessToken);
+        await TokenStorage.saveTokens(
+          accessToken: response.accessToken,
+          refreshToken: response.refreshToken,
+        );
 
         if (mounted) {
           context.go('/summary');
