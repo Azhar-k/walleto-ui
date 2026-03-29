@@ -17,8 +17,9 @@ Walleto is a comprehensive personal finance management Android application that 
 8. **Financial Insights**: Monthly summaries with category breakdowns
 9. **Account Details**: Individual account transaction history
 10. **SMS Scanning**: Manual scan of historical SMS messages
-11. **Google Drive Backup**: Cloud backup and restore functionality
-12. **Customizable regex**: Users can configure more regex patterns for SMS parsing and transaction processing in addition to the system ones.
+11. **RCS Monitoring**: Real-time monitoring of RCS business chat messages via notifications
+12. **Google Drive Backup**: Cloud backup and restore functionality
+13. **Customizable regex**: Users can configure more regex patterns for SMS parsing and transaction processing in addition to the system ones.
 ---
 
 ## Architecture
@@ -377,6 +378,7 @@ Manually scan SMS messages from a date range to extract and import transactions.
 - Logs results (matched, unmatched, duplicates, errors)
 - User can also paste the sms body manually in a text area and process it in the same way as that of processing the scanned sms.
 - user can either use the scan functionality or manually paste the sms text
+- **Note**: Historical RCS messages cannot be scanned natively due to OS restrictions. Only standard SMS messages are fully scanned by this module.
 
 ### Interactions
 - Select date range before scanning
@@ -405,6 +407,9 @@ Manually scan SMS messages from a date range to extract and import transactions.
 - `READ_SMS`: To read SMS messages
 - `RECEIVE_SMS`: To receive incoming SMS notifications
 
+### Notification Permissions
+- `Notification Access` (`BIND_NOTIFICATION_LISTENER_SERVICE`): To read incoming RCS messages in real-time.
+
 ### Foreground Service Permission
 - `FOREGROUND_SERVICE_DATA_SYNC`: For Android 14+ (for SMS monitoring service)
 
@@ -414,9 +419,10 @@ Manually scan SMS messages from a date range to extract and import transactions.
 
 ### SMS Monitor Service
 - Runs as foreground service
-- Monitors incoming SMS messages
+- Monitors incoming SMS messages natively via telephony.
+- Monitors incoming RCS business chat messages and other messaging notifications via Notification Listener.
 - Automatically parses and creates transactions
-- Processes SMS in real-time
+- Processes SMS/RCS in real-time
 - Prevents duplicate transactions using SMS hash
 
 ---
