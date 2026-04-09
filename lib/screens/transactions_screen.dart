@@ -745,6 +745,12 @@ class _TransactionTileState extends ConsumerState<_TransactionTile> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          const Icon(
+                            Icons.category,
+                            size: 12,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(width: 4),
                           Text(
                             tx.categoryName!,
                             style: TextStyle(
@@ -780,6 +786,12 @@ class _TransactionTileState extends ConsumerState<_TransactionTile> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          const Icon(
+                            Icons.account_balance_wallet,
+                            size: 12,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(width: 4),
                           Text(
                             tx.accountName!,
                             style: const TextStyle(
