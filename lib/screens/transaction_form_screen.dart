@@ -142,6 +142,9 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
         counterpartyName: _counterpartyController.text.trim(),
         excludeFromSummary: _excludeFromSummary,
         recurringPaymentId: _linkedRecurringPayment?.id,
+        smsBody: widget.existingTransaction?.smsBody,
+        smsSender: widget.existingTransaction?.smsSender,
+        smsHash: widget.existingTransaction?.smsHash,
       );
 
       try {
