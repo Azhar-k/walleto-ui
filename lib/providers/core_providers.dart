@@ -53,7 +53,15 @@ final auditServiceProvider = Provider((ref) {
 // State Notifiers / Future Providers
 final accountsProvider = FutureProvider<List<Account>>((ref) async {
   final service = ref.watch(accountServiceProvider);
-  return await service.getAccounts();
+  final accounts = await service.getAccounts();
+  // Sort: default account first
+  final sorted = List<Account>.from(accounts);
+  sorted.sort((a, b) {
+    if (a.isDefault == true) return -1;
+    if (b.isDefault == true) return 1;
+    return 0;
+  });
+  return sorted;
 });
 
 final categoriesProvider = FutureProvider<List<Category>>((ref) async {
