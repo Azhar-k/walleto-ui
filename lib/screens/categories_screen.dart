@@ -114,16 +114,14 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
               category.name,
               style: const TextStyle(fontWeight: FontWeight.w500),
             ),
-            trailing: IconButton(
-              icon: const Icon(Icons.edit, size: 20),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) =>
-                      CategoryFormScreen(existingCategory: category),
+            onTap:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) => CategoryFormScreen(existingCategory: category),
+                  ),
                 ),
-              ),
-            ),
           );
         },
       ),
