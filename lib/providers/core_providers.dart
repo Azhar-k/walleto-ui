@@ -78,6 +78,17 @@ class TransactionSearchNotifier
       state = AsyncValue.error(e, st);
     }
   }
+
+  Future<void> updateTransaction(Transaction transaction) async {
+    try {
+      await service.updateTransaction(transaction.id!, transaction);
+      // We could do an optimistic update here, but a refresh is safer to ensure all counts/balances are right.
+      search();
+    } catch (e) {
+      // Re-throw or handle error
+      rethrow;
+    }
+  }
 }
 
 final transactionSearchProvider =
