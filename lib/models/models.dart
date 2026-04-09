@@ -130,6 +130,47 @@ class Transaction {
     this.attachments,
   });
 
+  Transaction copyWith({
+    int? id,
+    double? amount,
+    TransactionType? transactionType,
+    DateTime? dateTime,
+    String? description,
+    int? categoryId,
+    String? categoryName,
+    int? accountId,
+    String? accountName,
+    String? counterpartyName,
+    String? smsBody,
+    String? smsSender,
+    String? smsHash,
+    int? recurringPaymentId,
+    bool? excludeFromSummary,
+    int? version,
+    List<TransactionAttachment>? attachments,
+  }) {
+    return Transaction(
+      id: id ?? this.id,
+      amount: amount ?? this.amount,
+      transactionType: transactionType ?? this.transactionType,
+      dateTime: dateTime ?? this.dateTime,
+      description: description ?? this.description,
+      categoryId: categoryId ?? this.categoryId,
+      categoryName: categoryName ?? this.categoryName,
+      accountId: accountId ?? this.accountId,
+      accountName: accountName ?? this.accountName,
+      counterpartyName: counterpartyName ?? this.counterpartyName,
+      smsBody: smsBody ?? this.smsBody,
+      smsSender: smsSender ?? this.smsSender,
+      smsHash: smsHash ?? this.smsHash,
+      recurringPaymentId: recurringPaymentId ?? this.recurringPaymentId,
+      excludeFromSummary: excludeFromSummary ?? this.excludeFromSummary,
+      version: version ?? this.version,
+      attachments: attachments ?? this.attachments,
+    );
+  }
+
+
   factory Transaction.fromJson(Map<String, dynamic> json) =>
       _$TransactionFromJson(json);
   Map<String, dynamic> toJson() => _$TransactionToJson(this);

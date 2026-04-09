@@ -53,12 +53,23 @@ final auditServiceProvider = Provider((ref) {
 // State Notifiers / Future Providers
 final accountsProvider = FutureProvider<List<Account>>((ref) async {
   final service = ref.watch(accountServiceProvider);
-  return await service.getAccounts();
+  final accounts = await service.getAccounts();
+  // Sort: default account first, then alphabetical
+  final sorted = List<Account>.from(accounts);
+  sorted.sort((a, b) {
+    if (a.isDefault == true && b.isDefault != true) return -1;
+    if (b.isDefault == true && a.isDefault != true) return 1;
+    return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+  });
+  return sorted;
 });
 
 final categoriesProvider = FutureProvider<List<Category>>((ref) async {
   final service = ref.watch(categoryServiceProvider);
-  return await service.getCategories();
+  final categories = await service.getCategories();
+  final sorted = List<Category>.from(categories);
+  sorted.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  return sorted;
 });
 
 class TransactionSearchNotifier
@@ -76,6 +87,17 @@ class TransactionSearchNotifier
       state = AsyncValue.data(transactions);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> updateTransaction(Transaction transaction) async {
+    try {
+      await service.updateTransaction(transaction.id!, transaction);
+      // We could do an optimistic update here, but a refresh is safer to ensure all counts/balances are right.
+      search();
+    } catch (e) {
+      // Re-throw or handle error
+      rethrow;
     }
   }
 }

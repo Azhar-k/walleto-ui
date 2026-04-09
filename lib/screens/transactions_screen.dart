@@ -610,17 +610,99 @@ class _DateTile extends StatelessWidget {
 
 // ─── Transaction list tile ────────────────────────────────────────────────────
 
-class _TransactionTile extends StatefulWidget {
+class _TransactionTile extends ConsumerStatefulWidget {
   final Transaction tx;
   final VoidCallback onTap;
   const _TransactionTile({required this.tx, required this.onTap});
 
   @override
-  State<_TransactionTile> createState() => _TransactionTileState();
+  ConsumerState<_TransactionTile> createState() => _TransactionTileState();
 }
 
-class _TransactionTileState extends State<_TransactionTile> {
+class _TransactionTileState extends ConsumerState<_TransactionTile> {
   bool _descExpanded = false;
+  bool _isUpdating = false;
+
+  Future<void> _showCategoryPicker() async {
+    final categoriesAsync = ref.read(categoriesProvider);
+    final categories = categoriesAsync.valueOrNull ?? [];
+    if (categories.isEmpty) return;
+
+    // Filter by transaction type
+    final filtered =
+        categories
+            .where(
+              (c) =>
+                  c.type ==
+                  (widget.tx.transactionType == TransactionType.credit
+                      ? CategoryType.income
+                      : CategoryType.expense),
+            )
+            .toList();
+
+    final Category? picked = await showModalBottomSheet<Category>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder:
+          (ctx) => _QuickPickerSheet<Category>(
+            title: 'Select Category',
+            items: filtered,
+            itemLabel: (c) => c.name,
+            selectedId: widget.tx.categoryId,
+          ),
+    );
+
+    if (picked != null && picked.id != widget.tx.categoryId) {
+      _updateTransaction(widget.tx.copyWith(
+        categoryId: picked.id,
+        categoryName: picked.name,
+      ));
+    }
+  }
+
+  Future<void> _showAccountPicker() async {
+    final accountsAsync = ref.read(accountsProvider);
+    final accounts = accountsAsync.valueOrNull ?? [];
+    if (accounts.isEmpty) return;
+
+    final Account? picked = await showModalBottomSheet<Account>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder:
+          (ctx) => _QuickPickerSheet<Account>(
+            title: 'Select Account',
+            items: accounts,
+            itemLabel: (a) => a.name,
+            selectedId: widget.tx.accountId,
+          ),
+    );
+
+    if (picked != null && picked.id != widget.tx.accountId) {
+      _updateTransaction(widget.tx.copyWith(
+        accountId: picked.id,
+        accountName: picked.name,
+      ));
+    }
+  }
+
+  Future<void> _updateTransaction(Transaction updated) async {
+    setState(() => _isUpdating = true);
+    try {
+      await ref.read(transactionSearchProvider.notifier).updateTransaction(updated);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUpdating = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -648,95 +730,133 @@ class _TransactionTileState extends State<_TransactionTile> {
             Row(
               children: [
                 if ((tx.categoryName ?? '').isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      tx.categoryName!,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: color,
-                        fontWeight: FontWeight.w600,
+                  InkWell(
+                    onTap: _isUpdating ? null : _showCategoryPicker,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.category,
+                            size: 12,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            tx.categoryName!,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: color,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          Icon(
+                            Icons.arrow_drop_down,
+                            size: 16,
+                            color: color.withValues(alpha: 0.7),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                const SizedBox(width: 6),
-                // Type badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(
-                      color: color.withValues(alpha: 0.4),
-                      width: 0.5,
+                const SizedBox(width: 8),
+                if ((tx.accountName ?? '').isNotEmpty)
+                  InkWell(
+                    onTap: _isUpdating ? null : _showAccountPicker,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.blueGrey.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.account_balance_wallet,
+                            size: 12,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            tx.accountName!,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.blueGrey,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          const Icon(
+                            Icons.arrow_drop_down,
+                            size: 16,
+                            color: Colors.blueGrey,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  child: Text(
-                    isCredit ? 'CR' : 'DR',
+                const Spacer(),
+                if (_isUpdating)
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else
+                  Text(
+                    '$prefix ${tx.amount.toStringAsFixed(2)}',
                     style: TextStyle(
-                      fontSize: 10,
                       color: color,
+                      fontSize: 17,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-                const Spacer(),
-                Text(
-                  '$prefix ${tx.amount.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 4),
             // ── Row 2: account • counterparty • date ─────────────────────────
             Row(
               children: [
-                if ((tx.accountName ?? '').isNotEmpty) ...[
-                  const Icon(
-                    Icons.account_balance_wallet,
-                    size: 12,
-                    color: Colors.grey,
-                  ),
-                  const SizedBox(width: 3),
-                  Text(
-                    tx.accountName!,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-                if (hasCounterparty) ...[
-                  const Text(
-                    '  ·  ',
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
-                  ),
-                  const Icon(
-                    Icons.person_outline,
-                    size: 12,
-                    color: Colors.grey,
-                  ),
-                  const SizedBox(width: 3),
-                  Flexible(
-                    child: Text(
-                      tx.counterpartyName!,
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                      overflow: TextOverflow.ellipsis,
+                if (hasCounterparty)
+                  Expanded(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.person_outline,
+                          size: 12,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(width: 3),
+                        Flexible(
+                          child: Text(
+                            tx.counterpartyName!,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-                const Spacer(),
+                const SizedBox(width: 8),
                 Text(
                   DateFormat.MMMd().add_jm().format(tx.dateTime),
                   style: const TextStyle(fontSize: 11, color: Colors.grey),
@@ -794,6 +914,83 @@ class _TransactionTileState extends State<_TransactionTile> {
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ─── Quick Picker Sheet ───────────────────────────────────────────────────────
+
+class _QuickPickerSheet<T> extends StatelessWidget {
+  final String title;
+  final List<T> items;
+  final String Function(T) itemLabel;
+  final dynamic selectedId;
+
+  const _QuickPickerSheet({
+    required this.title,
+    required this.items,
+    required this.itemLabel,
+    this.selectedId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 8, 0),
+            child: Row(
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+          const Divider(),
+          Flexible(
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: items.length,
+              separatorBuilder: (_, index) => const Divider(height: 1),
+              itemBuilder: (ctx, index) {
+                final item = items[index];
+                // Using dynamic to access 'id' property if it exists
+                final dynamic itemDyn = item;
+                final id = itemDyn.id;
+                final isSelected = id == selectedId;
+
+                return ListTile(
+                  title: Text(
+                    itemLabel(item),
+                    style: TextStyle(
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected ? Theme.of(context).primaryColor : null,
+                    ),
+                  ),
+                  trailing:
+                      isSelected
+                          ? Icon(
+                            Icons.check_circle,
+                            color: Theme.of(context).primaryColor,
+                          )
+                          : null,
+                  onTap: () => Navigator.pop(context, item),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }

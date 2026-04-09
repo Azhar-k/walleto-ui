@@ -74,6 +74,49 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
     }
   }
 
+  void _deleteCategory() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('Delete Category'),
+            content: const Text(
+              'Are you sure you want to delete this category? This action cannot be undone.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('CANCEL'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('DELETE'),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true) {
+      setState(() => _isLoading = true);
+      try {
+        await ref
+            .read(categoryServiceProvider)
+            .deleteCategory(widget.existingCategory!.id!);
+        ref.invalidate(categoriesProvider);
+        if (mounted) context.pop();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to delete category: $e')),
+          );
+        }
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,6 +124,14 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
         title: Text(
           widget.existingCategory == null ? 'Add Category' : 'Edit Category',
         ),
+        actions: [
+          if (widget.existingCategory != null)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.red),
+              tooltip: 'Delete Category',
+              onPressed: _deleteCategory,
+            ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

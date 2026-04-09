@@ -65,6 +65,46 @@ class _AccountDetailsScreenState extends ConsumerState<AccountDetailsScreen> {
     }
   }
 
+  Future<void> _deleteAccount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('Delete Account'),
+            content: const Text(
+              'Are you sure you want to delete this account? This action cannot be undone and may fail if there are associated transactions.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('CANCEL'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('DELETE'),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await ref.read(accountServiceProvider).deleteAccount(widget.accountId);
+        ref.invalidate(accountsProvider);
+        ref.invalidate(netBalanceProvider);
+        ref.invalidate(monthlySummaryProvider);
+        if (mounted) context.pop();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to delete account: $e')),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // If not provided from navigation, we could look it up from accountsProvider
@@ -95,6 +135,11 @@ class _AccountDetailsScreenState extends ConsumerState<AccountDetailsScreen> {
             icon: const Icon(Icons.edit),
             tooltip: 'Edit Account',
             onPressed: () => context.push('/accounts/edit', extra: account),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.red),
+            tooltip: 'Delete Account',
+            onPressed: _deleteAccount,
           ),
         ],
       ),
