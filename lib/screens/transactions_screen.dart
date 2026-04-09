@@ -735,8 +735,8 @@ class _TransactionTileState extends ConsumerState<_TransactionTile> {
                     borderRadius: BorderRadius.circular(12),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
+                        horizontal: 10,
+                        vertical: 4,
                       ),
                       decoration: BoxDecoration(
                         color: color.withValues(alpha: 0.12),
@@ -748,7 +748,7 @@ class _TransactionTileState extends ConsumerState<_TransactionTile> {
                           Text(
                             tx.categoryName!,
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: 12,
                               color: color,
                               fontWeight: FontWeight.w600,
                             ),
@@ -756,7 +756,7 @@ class _TransactionTileState extends ConsumerState<_TransactionTile> {
                           const SizedBox(width: 2),
                           Icon(
                             Icons.arrow_drop_down,
-                            size: 14,
+                            size: 16,
                             color: color.withValues(alpha: 0.7),
                           ),
                         ],
@@ -770,8 +770,8 @@ class _TransactionTileState extends ConsumerState<_TransactionTile> {
                     borderRadius: BorderRadius.circular(12),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
+                        horizontal: 10,
+                        vertical: 4,
                       ),
                       decoration: BoxDecoration(
                         color: Colors.blueGrey.withValues(alpha: 0.12),
@@ -783,7 +783,7 @@ class _TransactionTileState extends ConsumerState<_TransactionTile> {
                           Text(
                             tx.accountName!,
                             style: const TextStyle(
-                              fontSize: 11,
+                              fontSize: 12,
                               color: Colors.blueGrey,
                               fontWeight: FontWeight.w600,
                             ),
@@ -791,7 +791,7 @@ class _TransactionTileState extends ConsumerState<_TransactionTile> {
                           const SizedBox(width: 2),
                           const Icon(
                             Icons.arrow_drop_down,
-                            size: 14,
+                            size: 16,
                             color: Colors.blueGrey,
                           ),
                         ],
@@ -820,22 +820,31 @@ class _TransactionTileState extends ConsumerState<_TransactionTile> {
             // ── Row 2: account • counterparty • date ─────────────────────────
             Row(
               children: [
-                if (hasCounterparty) ...[
-                  const Icon(
-                    Icons.person_outline,
-                    size: 12,
-                    color: Colors.grey,
-                  ),
-                  const SizedBox(width: 3),
-                  Flexible(
-                    child: Text(
-                      tx.counterpartyName!,
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                      overflow: TextOverflow.ellipsis,
+                if (hasCounterparty)
+                  Expanded(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.person_outline,
+                          size: 12,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(width: 3),
+                        Flexible(
+                          child: Text(
+                            tx.counterpartyName!,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-                const Spacer(),
+                const SizedBox(width: 8),
                 Text(
                   DateFormat.MMMd().add_jm().format(tx.dateTime),
                   style: const TextStyle(fontSize: 11, color: Colors.grey),
