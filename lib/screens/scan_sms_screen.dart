@@ -51,14 +51,6 @@ class _ScanSmsScreenState extends ConsumerState<ScanSmsScreen> {
             date.isBefore(_endDate.add(const Duration(days: 1)));
       }).toList();
 
-      if (filteredMessages.isEmpty) {
-        setState(() {
-          _resultMessage = 'No SMS messages found in the selected date range.';
-          _isProcessing = false;
-        });
-        return;
-      }
-
       final mappedMessages = filteredMessages
           .map(
             (msg) => {
@@ -69,10 +61,28 @@ class _ScanSmsScreenState extends ConsumerState<ScanSmsScreen> {
           )
           .toList();
 
-      // Send to Backend - wrapped in BulkSmsDTO shape
+      // 2. RCS scan via Native MethodChannel (Android only)
+      final nativeService = ref.read(nativeSmsServiceProvider);
+      final rcsMessages = await nativeService.getRcsMessages(
+        startTime: _startDate,
+        endTime: _endDate.add(const Duration(days: 1)),
+      );
+
+      // Merge results
+      final allMessages = [...mappedMessages, ...rcsMessages];
+
+      if (allMessages.isEmpty) {
+        setState(() {
+          _resultMessage = 'No SMS or RCS messages found in the selected date range.';
+          _isProcessing = false;
+        });
+        return;
+      }
+
+      // 3. Send to Backend - wrapped in BulkSmsDTO shape
       final service = ref.read(smsServiceProvider);
       final result =
-          await service.processBatchSms({'messages': mappedMessages})
+          await service.processBatchSms({'messages': allMessages})
               as Map<String, dynamic>? ??
           {};
 
@@ -90,7 +100,7 @@ class _ScanSmsScreenState extends ConsumerState<ScanSmsScreen> {
       ref.invalidate(netBalanceProvider);
     } catch (e) {
       setState(() {
-        _resultMessage = 'Failed to process SMS: $e';
+        _resultMessage = 'Failed to process messages: $e';
       });
     } finally {
       setState(() {
@@ -109,7 +119,7 @@ class _ScanSmsScreenState extends ConsumerState<ScanSmsScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              'Select a date range to scan your device for financial SMS messages.\n\nNote: Historical RCS messages cannot be scanned natively due to OS restrictions, but incoming RCS messages are monitored in real-time.',
+              'Select a date range to scan your device for financial SMS and RCS messages.',
               style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 24),
