@@ -54,19 +54,22 @@ final auditServiceProvider = Provider((ref) {
 final accountsProvider = FutureProvider<List<Account>>((ref) async {
   final service = ref.watch(accountServiceProvider);
   final accounts = await service.getAccounts();
-  // Sort: default account first
+  // Sort: default account first, then alphabetical
   final sorted = List<Account>.from(accounts);
   sorted.sort((a, b) {
-    if (a.isDefault == true) return -1;
-    if (b.isDefault == true) return 1;
-    return 0;
+    if (a.isDefault == true && b.isDefault != true) return -1;
+    if (b.isDefault == true && a.isDefault != true) return 1;
+    return a.name.toLowerCase().compareTo(b.name.toLowerCase());
   });
   return sorted;
 });
 
 final categoriesProvider = FutureProvider<List<Category>>((ref) async {
   final service = ref.watch(categoryServiceProvider);
-  return await service.getCategories();
+  final categories = await service.getCategories();
+  final sorted = List<Category>.from(categories);
+  sorted.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  return sorted;
 });
 
 class TransactionSearchNotifier
