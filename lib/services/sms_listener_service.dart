@@ -6,6 +6,7 @@ import 'package:notification_listener_service/notification_event.dart';
 import '../core/network/api_client.dart';
 import 'sms_service.dart';
 import '../core/config/app_config.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Top level function for handling background SMS. It MUST be a top-level function.
 @pragma('vm:entry-point')
@@ -82,6 +83,20 @@ class SmsListenerService {
 
   static Future<void> processIncomingSms(SmsMessage message) async {
     try {
+      // Cross-Isolate Lock: Cache the standard SMS body to prevent Notification duplication
+      final prefs = await SharedPreferences.getInstance();
+      final lastBody = prefs.getString('last_sms_body');
+      final lastTime = prefs.getInt('last_sms_time') ?? 0;
+      
+      // If the exact same text arrived via Notification less than 15 seconds ago, silently drop this!
+      if (message.body == lastBody && (DateTime.now().millisecondsSinceEpoch - lastTime) < 15000) {
+        debugPrint("Dropping SMS duplicate. Already handled by Notification module.");
+        return;
+      }
+
+      await prefs.setString('last_sms_body', message.body ?? '');
+      await prefs.setInt('last_sms_time', DateTime.now().millisecondsSinceEpoch);
+
       final dio = ApiClient.getCoreClient();
       final service = SmsService(dio);
 
@@ -104,6 +119,20 @@ class SmsListenerService {
     ServiceNotificationEvent event,
   ) async {
     try {
+      // Cross-Isolate Lock: Check if this notification perfectly matches an SMS we literally just processed
+      final prefs = await SharedPreferences.getInstance();
+      final lastBody = prefs.getString('last_sms_body');
+      final lastTime = prefs.getInt('last_sms_time') ?? 0;
+      
+      // If the exact same text arrived natively less than 15 seconds ago, silently drop this notification!
+      if (event.content == lastBody && (DateTime.now().millisecondsSinceEpoch - lastTime) < 15000) {
+        debugPrint("Dropping notification duplicate. Handled by native SMS module.");
+        return;
+      }
+
+      await prefs.setString('last_sms_body', event.content ?? '');
+      await prefs.setInt('last_sms_time', DateTime.now().millisecondsSinceEpoch);
+
       final dio = ApiClient.getCoreClient();
       final service = SmsService(dio);
 
