@@ -1,13 +1,17 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:telephony/telephony.dart';
 import 'package:notification_listener_service/notification_listener_service.dart';
 import 'package:notification_listener_service/notification_event.dart';
 import '../core/network/api_client.dart';
 import 'sms_service.dart';
+import '../core/config/app_config.dart';
 
 /// Top level function for handling background SMS. It MUST be a top-level function.
 @pragma('vm:entry-point')
 void backgroudMessageHandler(SmsMessage message) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AppConfig.load();
   debugPrint("Background SMS received from: ${message.address}");
   await SmsListenerService.processIncomingSms(message);
 }
