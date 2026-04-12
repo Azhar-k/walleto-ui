@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/additional_providers.dart';
 
 class RegexManagementScreen extends ConsumerWidget {
@@ -20,7 +21,7 @@ class RegexManagementScreen extends ConsumerWidget {
             onRefresh: () async => ref.refresh(regexesProvider),
             child: ListView.separated(
               itemCount: regexes.length,
-              separatorBuilder: (_, _) => const Divider(height: 1),
+              separatorBuilder: (context, index) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final regex = regexes[index];
                 return ListTile(
@@ -42,7 +43,7 @@ class RegexManagementScreen extends ConsumerWidget {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Type: ${regex.transactionType.name}'),
+                      Text('Type: ${regex.transactionType.name.toUpperCase()}'),
                       Text(
                         regex.pattern,
                         style: const TextStyle(
@@ -54,12 +55,10 @@ class RegexManagementScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.edit, size: 20),
-                    onPressed: () {
-                      // context.push('/regex-patterns/edit', extra: regex);
-                    },
-                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    context.push('/regex-patterns/edit', extra: regex);
+                  },
                 );
               },
             ),
@@ -70,7 +69,7 @@ class RegexManagementScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // context.push('/regex-patterns/new');
+          context.push('/regex-patterns/new');
         },
         child: const Icon(Icons.add),
       ),
