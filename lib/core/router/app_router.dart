@@ -16,6 +16,7 @@ import 'package:walleto_ui/screens/self_transfer_screen.dart';
 import 'package:walleto_ui/screens/summary_screen.dart';
 import 'package:walleto_ui/screens/scan_sms_screen.dart';
 import 'package:walleto_ui/screens/regex_management_screen.dart';
+import 'package:walleto_ui/screens/regex_form_screen.dart';
 import 'package:walleto_ui/widgets/main_navigation_shell.dart';
 import 'package:walleto_ui/screens/audit_logs_screen.dart';
 import 'package:walleto_ui/models/models.dart';
@@ -139,7 +140,20 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/scan-sms', builder: (context, state) => ScanSmsScreen()),
     GoRoute(
       path: '/regex-patterns',
-      builder: (context, state) => RegexManagementScreen(),
+      builder: (context, state) => const RegexManagementScreen(),
+      routes: [
+        GoRoute(
+          path: 'new',
+          builder: (context, state) => const RegexFormScreen(),
+        ),
+        GoRoute(
+          path: 'edit',
+          builder: (context, state) {
+            final regex = state.extra as RegexPattern;
+            return RegexFormScreen(existingRegex: regex);
+          },
+        ),
+      ],
     ),
     GoRoute(
       path: '/audit-logs',
